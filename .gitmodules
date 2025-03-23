@@ -1,3 +1,7 @@
 [submodule "src/PipelineA/dgcnn"]
 	path = src/PipelineA/dgcnn
 	url = https://github.com/WangYueFt/dgcnn.git
+
+[submodule "src/pipelineB/MiDaS"]
+	path = src/pipelineB/MiDaS
+	url = https://github.com/isl-org/MiDaS.git
