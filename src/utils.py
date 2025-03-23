@@ -5,13 +5,19 @@ import pickle
 import matplotlib.pyplot as plt
 
 
-DATASET_PATHS = ["data/CW2_dataset/harvard_c5/hv_c5_1/",
+DATASET_PATHS_WITH_TABLE = ["data/CW2_dataset/harvard_c5/hv_c5_1/",
          "data/CW2_dataset/harvard_c6/hv_c6_1/",
          "data/CW2_dataset/mit_76_studyroom/76-1studyroom2/",
          "data/CW2_dataset/mit_32_d507/d507_2/",
          "data/CW2_dataset/harvard_c11/hv_c11_2/",
          "data/CW2_dataset/mit_lab_hj/lab_hj_tea_nov_2_2012_scan1_erika/",
          "data/CW2_dataset/mit_76_459/76-459b/"]
+
+DATASET_PATHS_WITHOUT_TABLE = ["data/CW2_dataset/mit_gym_z_squash/gym_z_squash_scan1_oct_26_2012_erika/",
+         "data/CW2_dataset/harvard_tea_2/hv_tea2_2/"]
+
+
+DATASET_PATHS = DATASET_PATHS_WITH_TABLE + DATASET_PATHS_WITHOUT_TABLE
 
 NUM_IMAGES = [23, 35, 48, 108, 13, 13, 43]
 
@@ -73,10 +79,12 @@ def get_data(dataset_path,data_id):
     depth = plt.imread(dataset_path+"depthTSDF/"+depth_name)
 
     # ================== Load Labels ==================
-    with open(dataset_path+"labels/tabletop_labels.dat", 'rb') as label_file:
-        tabletop_labels = pickle.load(label_file)
-        label_file.close()
-    labels = tabletop_labels[data_id]
+    labels = None
+    labels_path = dataset_path + "labels/tabletop_labels.dat"
+    if os.path.exists(labels_path):
+        with open(labels_path, 'rb') as label_file:
+            tabletop_labels = pickle.load(label_file)
+            labels = tabletop_labels[data_id] if data_id < len(tabletop_labels) else None
     
     return rgb, depth, labels
 
@@ -97,10 +105,11 @@ def visualize_data(rgb, depth, labels):
 
     plt.subplot(133)
     plt.imshow(rgb)
-    for polygon in labels:
-        plt.plot(polygon[0]+polygon[0][0:1],polygon[1]+polygon[1][0:1],'r')
+    if labels is not None:
+        for polygon in labels:
+            plt.plot(polygon[0] + polygon[0][0:1], polygon[1] + polygon[1][0:1], 'r')
     plt.axis('off')
-    plt.title('Labels')
+    plt.title('Labels (if available)')
 
     plt.show()
 
@@ -137,8 +146,14 @@ def visualize_point_cloud(points):
 
 
 if __name__ == '__main__':
-    # Load data
-    dataset_path = DATASET_PATHS[0]
+    # # Load data with labels
+    # dataset_path = DATASET_PATHS_WITH_TABLE[0]
+    # data_id = 0
+    # rgb, depth, labels = get_data(dataset_path, data_id)
+    # visualize_data(rgb, depth, labels)
+
+    # Load data without labels
+    dataset_path = DATASET_PATHS_WITHOUT_TABLE[0]
     data_id = 0
     rgb, depth, labels = get_data(dataset_path, data_id)
     visualize_data(rgb, depth, labels)
