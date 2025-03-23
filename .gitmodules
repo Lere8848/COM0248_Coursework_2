@@ -1,0 +1,3 @@
+[submodule "src/PipelineA/dgcnn"]
+	path = src/PipelineA/dgcnn
+	url = https://github.com/WangYueFt/dgcnn.git
