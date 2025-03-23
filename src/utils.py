@@ -15,6 +15,29 @@ DATASET_PATHS = ["data/CW2_dataset/harvard_c5/hv_c5_1/",
 
 NUM_IMAGES = [23, 35, 48, 108, 13, 13, 43]
 
+def check_time(func):
+    """
+    A decorator that prints the time a function takes
+    """
+    def wrapper(*args, **kwargs):
+        import time
+        start = time.time()
+        result = func(*args, **kwargs)
+        print(f'{func.__name__} took {time.time() - start} seconds')
+        return result
+    return wrapper
+
+def debuger(func):
+    """
+    A decorator that prints the arguments and the return value of a function
+    """
+    def wrapper(*args, **kwargs):
+        print(f'Arguments: {args}, {kwargs}')
+        result = func(*args, **kwargs)
+        print(f'Return value: {result}')
+        return result
+    return wrapper
+
 def get_num_images(dataset_path):
     """
     get number of images in the dataset
@@ -82,33 +105,29 @@ def visualize_data(rgb, depth, labels):
     plt.show()
 
 
-
-## TODO: depth_to_point_cloud Untested
 def depth_to_point_cloud(depth, K):
     """
-    depth: (H, W) np.array 深度图
-    K: (3, 3) 内参矩阵
-    返回: Nx3 点云数组
+    depth: (H, W) depth image
+    K: (3, 3) intrinsics matrix
     """
+    # Get image size and pixel coordinates
     H, W = depth.shape
     u, v = np.meshgrid(np.arange(W), np.arange(H))
-    
-    # 从像素坐标到归一化相机坐标
+
+    # Convert pixel coordinates to normalized camera coordinates
     x = (u - K[0, 2]) / K[0, 0]
     y = (v - K[1, 2]) / K[1, 1]
-
     z = depth.flatten()
+    # Convert normalized camera coordinates to camera coordinates
     x = (x.flatten() * z)
     y = (y.flatten() * z)
-
     points = np.vstack((x, y, z)).T
-    points = points[z > 0]  # 过滤深度值为0的无效点
-
+    points = points[z > 0]  # remove points with 0 depth
     return points
 
 def visualize_point_cloud(points):
     """
-    points: Nx3 点云数组
+    points: Nx3 point cloud
     """
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
