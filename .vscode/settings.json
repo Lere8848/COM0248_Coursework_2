@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./src/PiplineC/KPConv-PyTorch"
+    ]
+}
