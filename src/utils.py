@@ -19,7 +19,11 @@ DATASET_PATHS_WITHOUT_TABLE = ["data/CW2_dataset/mit_gym_z_squash/gym_z_squash_s
 
 DATASET_PATHS = DATASET_PATHS_WITH_TABLE + DATASET_PATHS_WITHOUT_TABLE
 
-NUM_IMAGES = [23, 35, 48, 108, 13, 13, 43]
+NUM_IMAGES_WITH_TABLE = [23, 35, 48, 108, 13, 13, 43]
+
+NUM_IMAGES_WITHOUT_TABLE = [73, 23]
+
+NUM_IMAGES = NUM_IMAGES_WITH_TABLE + NUM_IMAGES_WITHOUT_TABLE
 
 def check_time(func):
     """
@@ -152,16 +156,21 @@ if __name__ == '__main__':
     # rgb, depth, labels = get_data(dataset_path, data_id)
     # visualize_data(rgb, depth, labels)
 
-    # Load data without labels
-    dataset_path = DATASET_PATHS_WITHOUT_TABLE[0]
-    data_id = 0
-    rgb, depth, labels = get_data(dataset_path, data_id)
-    visualize_data(rgb, depth, labels)
+    # # Load data without labels
+    # dataset_path = DATASET_PATHS_WITHOUT_TABLE[0]
+    # data_id = 0
+    # rgb, depth, labels = get_data(dataset_path, data_id)
+    # visualize_data(rgb, depth, labels)
 
-    # Load intrinsics
-    intrinsics = get_intrinsics(dataset_path)
-    print(intrinsics)
+    # # Load intrinsics
+    # intrinsics = get_intrinsics(dataset_path)
+    # print(intrinsics)
 
-    # Convert depth to point cloud
-    points = depth_to_point_cloud(depth, intrinsics)
-    visualize_point_cloud(points)
+    # # Convert depth to point cloud
+    # points = depth_to_point_cloud(depth, intrinsics)
+    # visualize_point_cloud(points)
+
+    # Get number of images
+    dataset_path = DATASET_PATHS_WITHOUT_TABLE[1]
+    num_images = get_num_images(dataset_path)
+    print(num_images)
