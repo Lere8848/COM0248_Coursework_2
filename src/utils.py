@@ -5,13 +5,13 @@ import pickle
 import matplotlib.pyplot as plt
 
 
-DATASET_PATHS = ["data/CW2_dataset/harvard_c5/hv_c5_1/",
-         "data/CW2_dataset/harvard_c6/hv_c6_1/",
-         "data/CW2_dataset/mit_76_studyroom/76-1studyroom2/",
-         "data/CW2_dataset/mit_32_d507/d507_2/",
-         "data/CW2_dataset/harvard_c11/hv_c11_2/",
-         "data/CW2_dataset/mit_lab_hj/lab_hj_tea_nov_2_2012_scan1_erika/",
-         "data/CW2_dataset/mit_76_459/76-459b/"]
+DATASET_PATHS = ["data/CW2_Dataset/harvard_c5/hv_c5_1/",
+         "data/CW2_Dataset/harvard_c6/hv_c6_1/",
+         "data/CW2_Dataset/mit_76_studyroom/76-1studyroom2/",
+         "data/CW2_Dataset/mit_32_d507/d507_2/",
+         "data/CW2_Dataset/harvard_c11/hv_c11_2/",
+         "data/CW2_Dataset/mit_lab_hj/lab_hj_tea_nov_2_2012_scan1_erika/",
+         "data/CW2_Dataset/mit_76_459/76-459b/"]
 
 NUM_IMAGES = [23, 35, 48, 108, 13, 13, 43]
 
