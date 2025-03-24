@@ -1,5 +1,5 @@
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import os
 import sys
@@ -45,12 +45,21 @@ class PipelineBRGBDataset(Dataset):
 
 
 if __name__ == "__main__": # test dataset
+    all_datasets = []
     for dataset_path in DATASET_PATHS:
         dataset = PipelineBRGBDataset(dataset_path)
-        print(f"dataset length: {len(dataset)}")
-        print(f"has table: {dataset.has_table}")
-        
-        rgb, label = dataset[0]
-        print(f"RGB shape: {rgb.shape}, label: {label.shape}")
-        print(f"RGB min max: [{rgb.min()}, {rgb.max()}], type: {rgb.dtype}")
-        print(f"label type: {label.dtype}, value: {label.item()}")
+        all_datasets.append(dataset)
+    
+    # Combine all datasets into a single dataset
+    combined_dataset = torch.utils.data.ConcatDataset(all_datasets)
+    
+    # Create a DataLoader for the combined dataset
+    dataloader = DataLoader(combined_dataset, batch_size=4, shuffle=False)
+    
+    # Test the DataLoader
+    for batch_idx, (rgb_batch, label_batch) in enumerate(dataloader):
+        print(f"Batch {batch_idx}:")
+        print(f"RGB batch shape: {rgb_batch.shape}, label batch shape: {label_batch.shape}") # [4, 3, H, W], [4]
+        # print(f"RGB batch min max: [{rgb_batch.min()}, {rgb_batch.max()}], type: {rgb_batch.dtype}")
+        # print(f"Label batch type: {label_batch.dtype}, values: {label_batch}")
+        break  # Only test the first batch
