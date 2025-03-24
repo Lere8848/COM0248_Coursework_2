@@ -8,7 +8,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 # path = "data/CW2_dataset/harvard_c5/hv_c5_1/"
-path = "data/CW2-Dataset/harvard_c6/hv_c6_1/"
+path = "data/CW2_dataset/harvard_c6/hv_c6_1/"
 # path = "data/CW2_dataset/mit_76_studyroom/76-1studyroom2/"
 # path = "data/CW2_dataset/mit_32_d507/d507_2/"
 # path = "data/CW2_dataset/harvard_c11/hv_c11_2/"
