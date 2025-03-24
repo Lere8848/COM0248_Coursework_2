@@ -3,6 +3,8 @@ import torch.nn as nn
 import torchvision.transforms as T
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+
 from pathlib import Path
 
 # 添加路径：导入 MiDaS 模型
@@ -48,5 +50,44 @@ class MiDaSDepthEstimator:
             ).squeeze()
 
         depth = prediction.cpu().numpy()
-        depth = (depth - depth.min()) / (depth.max() - depth.min() + 1e-8)  # 归一化到0-1
+        # print(depth.shape)
+        # print(depth.min(), depth.max())
+        # print(depth.dtype)
+        # print(depth)
+
+        depth = (depth - depth.min()) / (depth.max() - depth.min() + 1e-8)  # normalize to 0-1
+
+        # depth to tensor
+        depth = torch.tensor(depth, dtype=torch.float32)
+        
         return depth
+
+
+if __name__ == "__main__": # test
+    img_path = "data/CW2_dataset/harvard_c5/hv_c5_1/image/0000001-000000023574.jpg"
+    img = cv2.imread(img_path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    # create estimator
+    estimator = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_large_384.pt")
+
+    # predict
+    depth = estimator.predict(img)
+    print(depth.shape)
+    # print(depth.min(), depth.max())
+    print(depth.dtype)
+    # print(depth)
+
+    # visualize
+    plt.subplot(1, 2, 1)
+    plt.title("RGB")
+    plt.imshow(img)
+    plt.axis("off")
+
+    plt.subplot(1, 2, 2)
+    plt.title("Estimated Depth")
+    plt.imshow(depth, cmap="inferno") # depth_normalized -> visual depth
+    plt.colorbar()
+    plt.axis("off")
+
+    plt.show()
