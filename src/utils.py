@@ -5,18 +5,18 @@ import pickle
 import matplotlib.pyplot as plt
 
 DATASET_PATHS_MIT = [
-    "data/CW2-Dataset/mit_32_d507",
-    "data/CW2-Dataset/mit_76_459",
-    "data/CW2-Dataset/mit_76_studyroom",
-    "data/CW2-Dataset/mit_gym_z_squash",
-    "data/CW2-Dataset/mit_lab_hj"
+    "data/CW2-Dataset/mit_32_d507/",
+    "data/CW2-Dataset/mit_76_459/",
+    "data/CW2-Dataset/mit_76_studyroom/",
+    "data/CW2-Dataset/mit_gym_z_squash/",
+    "data/CW2-Dataset/mit_lab_hj/"
 ]
 
 DATASET_PATHS_HARVARD = [
-    "data/CW2-Dataset/harvard_c5",
-    "data/CW2-Dataset/harvard_c6",
-    "data/CW2-Dataset/harvard_c11",
-    "data/CW2-Dataset/harvard_tea_2"
+    "data/CW2-Dataset/harvard_c5/",
+    "data/CW2-Dataset/harvard_c6/",
+    "data/CW2-Dataset/harvard_c11/",
+    "data/CW2-Dataset/harvard_tea_2/"
 ]
 
 DATASET_PATHS_WITH_TABLE = ["data/CW2_dataset/harvard_c5/hv_c5_1/",
