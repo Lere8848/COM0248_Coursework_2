@@ -1,5 +1,6 @@
 /data/CW2_dataset
 /data/realsense
+/data/processed_data
 
 /src/pipelineB/__pycache__
 /src/pipelineB/weights
