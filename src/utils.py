@@ -16,6 +16,15 @@ DATASET_PATHS_WITH_TABLE = ["data/CW2_dataset/harvard_c5/hv_c5_1/",
 DATASET_PATHS_WITHOUT_TABLE = ["data/CW2_dataset/mit_gym_z_squash/gym_z_squash_scan1_oct_26_2012_erika/",
          "data/CW2_dataset/harvard_tea_2/hv_tea2_2/"]
 
+MISSING_POLYGON_LABELS = {
+    "76-1studyroom2": ["0002111-000070763319"],
+    "d507_2": ["0004646-000155745519"],
+    "hv_c11_2": ["0000006-000000187873"],
+    "lab_hj_tea_nov_2_2012_scan1_erika": [
+        "0001106-000044777376",
+        "0001326-000053659116"
+    ]
+}
 
 DATASET_PATHS = DATASET_PATHS_WITH_TABLE + DATASET_PATHS_WITHOUT_TABLE
 
@@ -83,7 +92,7 @@ def get_data(dataset_path,data_id):
     depth = plt.imread(dataset_path+"depthTSDF/"+depth_name)
 
     # ================== Load Labels ==================
-    labels = None
+    labels = []
     labels_path = dataset_path + "labels/tabletop_labels.dat"
     if os.path.exists(labels_path):
         with open(labels_path, 'rb') as label_file:
@@ -109,9 +118,8 @@ def visualize_data(rgb, depth, labels):
 
     plt.subplot(133)
     plt.imshow(rgb)
-    if labels is not None:
-        for polygon in labels:
-            plt.plot(polygon[0] + polygon[0][0:1], polygon[1] + polygon[1][0:1], 'r')
+    for polygon in labels:
+        plt.plot(polygon[0] + polygon[0][0:1], polygon[1] + polygon[1][0:1], 'r')
     plt.axis('off')
     plt.title('Labels (if available)')
 
