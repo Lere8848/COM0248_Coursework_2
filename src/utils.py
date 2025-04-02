@@ -75,7 +75,9 @@ def get_num_images(dataset_path):
     """
     get number of images in the dataset
     """
-    return len(os.listdir(dataset_path+"image")) - 1
+    # get only png jpg jpeg files
+    num_images = len([name for name in os.listdir(dataset_path + "image") if name.endswith(('.png', '.jpg', '.jpeg'))])
+    return num_images
 
 def get_intrinsics(dataset_path):
     """
@@ -193,6 +195,6 @@ if __name__ == '__main__':
     # visualize_point_cloud(points)
 
     # Get number of images
-    dataset_path = DATASET_PATHS_WITHOUT_TABLE[1]
-    num_images = get_num_images(dataset_path)
-    print(num_images)
+    for dataset_path in DATASET_PATHS:
+        num_images = get_num_images(dataset_path)
+        print(f'{dataset_path}: {num_images} images')
