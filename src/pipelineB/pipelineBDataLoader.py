@@ -3,21 +3,24 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import os
 import sys
+import json
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import get_data, get_num_images, DATASET_PATHS, DATASET_PATHS_WITH_TABLE, DATASET_PATHS_WITHOUT_TABLE
 
 class PipelineBRGBDataset(Dataset):
-    def __init__(self, dataset_path, transform=None):
+    def __init__(self, dataset_path, transform=None, label_json_path="./data/polygon_label_dict.json"):
         self.dataset_path = dataset_path
         self.transform = transform
         self.num_samples = get_num_images(dataset_path)
 
-        # see if data belong to DATASET_PATHS_WITHOUT_TABLE
-        # CW2.pdf p.9: 'mit_gym_z_squash', 'harvard_tea_2' negative samples
-        self.has_table = True
-        if any(no_table_path == dataset_path for no_table_path in DATASET_PATHS_WITHOUT_TABLE):
-            self.has_table = False
+        # load polygon_label_dict.json
+        with open(label_json_path, "r") as f:
+            self.label_dict = json.load(f)
+        self.image_names = sorted([
+            f for f in os.listdir(os.path.join(dataset_path, "image"))
+            if f.lower().endswith((".jpg", ".jpeg", ".png")) # only load image files
+        ])
 
     def __len__(self):
         return self.num_samples
@@ -35,7 +38,11 @@ class PipelineBRGBDataset(Dataset):
             rgb = (rgb * 255).astype(np.uint8)
 
         # --get label--
-        label = 1 if self.has_table else 0
+        img_name = self.image_names[idx]
+        frame_name = os.path.splitext(img_name)[0]
+
+        polygon = self.label_dict.get(frame_name, None) # check from polygon_label_dict.json
+        label = 1 if polygon is not None else 0
 
         # to tensor
         rgb = torch.tensor(rgb, dtype=torch.float32).permute(2, 0, 1) / 255.0  # [3,H,W]
@@ -54,12 +61,13 @@ if __name__ == "__main__": # test dataset
     combined_dataset = torch.utils.data.ConcatDataset(all_datasets)
     
     # Create a DataLoader for the combined dataset
-    dataloader = DataLoader(combined_dataset, batch_size=4, shuffle=False)
+    dataloader = DataLoader(combined_dataset, batch_size=4, shuffle=True)
     
     # Test the DataLoader
     for batch_idx, (rgb_batch, label_batch) in enumerate(dataloader):
         print(f"Batch {batch_idx}:")
         print(f"RGB batch shape: {rgb_batch.shape}, label batch shape: {label_batch.shape}") # [4, 3, H, W], [4]
-        # print(f"RGB batch min max: [{rgb_batch.min()}, {rgb_batch.max()}], type: {rgb_batch.dtype}")
-        # print(f"Label batch type: {label_batch.dtype}, values: {label_batch}")
-        break  # Only test the first batch
+        print(f"RGB batch min max: [{rgb_batch.min()}, {rgb_batch.max()}], type: {rgb_batch.dtype}")
+        print(f"Label batch type: {label_batch.dtype}, values: {label_batch}")
+        if batch_idx == 2:  # Stop after testing the first 3 batches (0, 1, 2)
+            break
