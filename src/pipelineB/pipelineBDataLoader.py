@@ -9,17 +9,22 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import get_data, get_num_images, DATASET_PATHS, DATASET_PATHS_WITH_TABLE, DATASET_PATHS_WITHOUT_TABLE
 
 class PipelineBRGBDataset(Dataset):
-    def __init__(self, dataset_path, transform=None, label_json_path="./data/polygon_label_dict.json"):
+    def __init__(self, dataset_path, transform=None):
         self.dataset_path = dataset_path
         self.transform = transform
         self.num_samples = get_num_images(dataset_path)
 
-        # load polygon_label_dict.json
+        # load per-dataset label.json from dataset_path
+        label_json_path = os.path.join(dataset_path, "label.json")
+        if not os.path.exists(label_json_path):
+            raise FileNotFoundError(f"Label file not found: {label_json_path}")
         with open(label_json_path, "r") as f:
             self.label_dict = json.load(f)
+
+        # only include image files
         self.image_names = sorted([
             f for f in os.listdir(os.path.join(dataset_path, "image"))
-            if f.lower().endswith((".jpg", ".jpeg", ".png")) # only load image files
+            if f.lower().endswith((".jpg", ".jpeg", ".png"))
         ])
 
     def __len__(self):
