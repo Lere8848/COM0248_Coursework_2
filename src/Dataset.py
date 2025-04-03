@@ -58,6 +58,14 @@ def collate_fn(batch):
     # Collate function to handle variable-length sequences
     return batch  
 
+def get_dataloader(dataset_paths,data_dict, batch_size=4, shuffle=True,device=torch.device('cpu')):
+    """
+    Get dataloader for the dataset
+    """
+    dataset = PointCloudDataset(dataset_paths, data_dict, device=device)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
+    return dataloader
+    
 if __name__ == "__main__":
     dataset_paths = [DATASET_PATHS_MIT, DATASET_PATHS_HARVARD]
     data_dict = {
