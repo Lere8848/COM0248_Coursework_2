@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 from midas_depth_estimator import MiDaSDepthEstimator
 from resnet_classifier import ResNetDepthClassifier
+from mlp_classifier import MLPDepthClassifier
 
 class PipelineBModel(nn.Module):
     """
@@ -12,7 +13,7 @@ class PipelineBModel(nn.Module):
     def __init__(self, midas_model=None, classifier=None, freeze_midas=True):
         super().__init__()
         self.midas = midas_model if midas_model is not None else MiDaSDepthEstimator()
-        self.classifier = classifier if classifier is not None else ResNetDepthClassifier()
+        self.classifier = classifier if classifier is not None else MLPDepthClassifier()
 
         # freeze MiDaS model
         if freeze_midas and self.midas is not None:
@@ -54,9 +55,9 @@ class PipelineBModel(nn.Module):
         return predictions, probs
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # test
     midas = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_large_384.pt")
-    classifier = ResNetDepthClassifier()
+    classifier = MLPDepthClassifier()
     model = PipelineBModel(midas, classifier)
 
     batch_rgb = torch.randint(0, 255, (4, 3, 480, 640), dtype=torch.float32) / 255.0  # fake input

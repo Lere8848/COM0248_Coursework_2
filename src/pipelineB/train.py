@@ -18,10 +18,11 @@ from utils import DATASET_PATHS_MIT, DATASET_PATHS_HARVARD
 from pipelineBDataLoader import PipelineBRGBDataset
 from midas_depth_estimator import MiDaSDepthEstimator
 from resnet_classifier import ResNetDepthClassifier
+from mlp_classifier import MLPDepthClassifier
 from pipelineB_model import PipelineBModel
 
 BATCH_SIZE = 4
-EPOCHS = 5
+EPOCHS = 20
 LEARNING_RATE = 1e-4
 WEIGHT_DECAY = 1e-5
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -98,9 +99,11 @@ def main(is_visualize=False):
     print("Initializing MiDaS depth estimator...")
     midas = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_large_384.pt", device=DEVICE)
     resnet = ResNetDepthClassifier(num_classes=2).to(DEVICE)
+    mlp = MLPDepthClassifier(num_classes=2).to(DEVICE)
 
     print("Building PipelineB model...")
-    model = PipelineBModel(midas, resnet, freeze_midas=True).to(DEVICE)
+    # model = PipelineBModel(midas, resnet, freeze_midas=True).to(DEVICE)
+    model = PipelineBModel(midas, mlp, freeze_midas=True).to(DEVICE)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(
