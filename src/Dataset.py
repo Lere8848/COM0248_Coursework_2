@@ -38,16 +38,16 @@ class PointCloudDataset(Dataset):
         # TODO: Add polygon data
         if self.data_dict['pointcloud']:
             pointcloud = depth_to_point_cloud(depth, get_intrinsics(dataset_path))
-            return_dict['pointcloud'] = torch.tensor(pointcloud, dtype=torch.float32, device=self.device)
+            pointcloud = torch.tensor(pointcloud, dtype=torch.float32).unsqueeze(0).transpose(2, 1)  # shape: [1, 3, n]
+            return_dict['pointcloud'] = pointcloud
         # Apply transformations
         if self.data_dict['rgb']:
             rgb = self.transform(rgb)
             rgb = torch.tensor(rgb, dtype=torch.float32, device=self.device)
             rgb = rgb.permute(2, 0, 1)  # Change to (C, H, W)
             return_dict['rgb'] = rgb
-        # if self.data_dict['labels']:
-        #     labels = torch.tensor(labels, dtype=torch.int64, device=self.device)
-        #     return_dict['labels'] = labels
+        if self.data_dict['labels']:
+            return_dict['labels'] = labels
         if self.data_dict['depth']:
             depth = torch.tensor(depth, dtype=torch.float32, device=self.device)
             depth = depth.unsqueeze(0)  # Add channel dimension
