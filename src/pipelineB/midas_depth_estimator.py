@@ -4,6 +4,7 @@ import torchvision.transforms as T
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from pathlib import Path
 
@@ -55,39 +56,40 @@ class MiDaSDepthEstimator:
         # print(depth.dtype)
         # print(depth)
 
-        depth = (depth - depth.min()) / (depth.max() - depth.min() + 1e-8)  # normalize to 0-1
+        # depth = (depth - depth.min()) / (depth.max() - depth.min() + 1e-8)  # normalize to 0-1
 
         # depth to tensor
-        depth = torch.tensor(depth, dtype=torch.float32)
+        depth = torch.tensor(depth, dtype=torch.float32) # [480, 640]
         
         return depth
 
 
 if __name__ == "__main__": # test
-    img_path = "data/CW2_dataset/harvard_c5/hv_c5_1/image/0000001-000000023574.jpg"
-    img = cv2.imread(img_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img_dir = "data/CW2_dataset/harvard_c5/hv_c5_1/image"
+    img_files = [f for f in os.listdir(img_dir) if f.endswith(".jpg")]
 
     # create estimator
     estimator = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_large_384.pt")
 
-    # predict
-    depth = estimator.predict(img)
-    print(depth.shape)
-    # print(depth.min(), depth.max())
-    print(depth.dtype)
-    # print(depth)
+    for img_file in img_files:
+        img_path = os.path.join(img_dir, img_file)
+        img = cv2.imread(img_path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    # visualize
-    plt.subplot(1, 2, 1)
-    plt.title("RGB")
-    plt.imshow(img)
-    plt.axis("off")
+        # predict
+        depth = estimator.predict(img)
+        print(f"Processed {img_file}: Depth shape {depth.shape}, dtype {depth.dtype}")
 
-    plt.subplot(1, 2, 2)
-    plt.title("Estimated Depth")
-    plt.imshow(depth, cmap="inferno") # depth_normalized -> visual depth
-    plt.colorbar()
-    plt.axis("off")
+        # visualize
+        plt.subplot(1, 2, 1)
+        plt.title("RGB")
+        plt.imshow(img)
+        plt.axis("off")
 
-    plt.show()
+        plt.subplot(1, 2, 2)
+        plt.title("Estimated Depth")
+        plt.imshow(depth, cmap="inferno")
+        plt.colorbar()
+        plt.axis("off")
+
+        plt.show()
