@@ -9,12 +9,14 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from src.PipelineC.dgcnn_seg import DGCNN_seg  # 你的 DGCNN 实现
 import argparse
+from src.PipelineC.pointnet.pointnet.model import PointNetDenseCls
+
 
 
 # ---------- 配置 ----------
 DATA_ROOT = "data/processed_data"
-BATCH_SIZE = 4
-NUM_EPOCHS = 50
+BATCH_SIZE = 8
+NUM_EPOCHS = 100
 NUM_POINTS = 4096
 NUM_CLASSES = 2
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -56,8 +58,9 @@ def train():
 
     # 初始化模型
     model = DGCNN_seg(num_classes=NUM_CLASSES).to(DEVICE)
+    # model = PointNetDenseCls(k=NUM_CLASSES).to(DEVICE)
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.00005)
 
     best_val_acc = 0.0
 
@@ -75,6 +78,16 @@ def train():
             labels = labels.view(-1)
 
             loss = criterion(preds, labels)
+            # points, labels = points.to(DEVICE), labels.to(DEVICE)  # (B, N, 3), (B, N)
+            # points = points.permute(0, 2, 1)  # (B, 3, N)
+
+            # preds,_,_ = model(points)  # (B, C, N)
+            # preds = preds.view(-1, NUM_CLASSES)
+            # labels = labels.view(-1)
+
+            # loss = criterion(preds, labels)
+
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -96,6 +109,8 @@ def train():
                 points = points.permute(0, 2, 1)
                 preds = model(points)
                 preds = preds.permute(0, 2, 1).contiguous().view(-1, NUM_CLASSES)
+                # preds,_,_ = model(points)
+                # preds = preds.permute(0, 2, 1).contiguous().view(-1, NUM_CLASSES)
                 labels = labels.view(-1)
 
                 pred_classes = preds.argmax(dim=1)
@@ -108,7 +123,8 @@ def train():
         # 保存最佳模型
         if val_acc > best_val_acc:
             best_val_acc = val_acc
-            torch.save(model.state_dict(), "best_dgcnn_table_seg.pth")
+            file_name = f"best_dgcnn_epoch_{epoch+1}.pth"
+            torch.save(model.state_dict(), file_name)
             print("保存最佳模型")
 
     print("训练完成，最佳验证准确率：", best_val_acc)

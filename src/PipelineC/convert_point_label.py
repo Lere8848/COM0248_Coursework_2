@@ -85,19 +85,42 @@ def extract_polygons_from_labels(labels):
             polygons.append(polygon)
     return polygons
 
-def sample_pointcloud(points, label, num_points):
+def balanced_sample_pointcloud(points, labels, num_points, table_ratio=0.8):
     """
-    统一点云为定长点数
+    从点云中采样，使得桌子点（label=1）占比达到 table_ratio，剩下的为背景。
+    不足部分会随机重复采样。
     """
-    N = points.shape[0]
-    if N >= num_points:
-        idx = np.random.choice(N, num_points, replace=False)
-    else:
-        idx = np.concatenate([
-            np.arange(N),
-            np.random.choice(N, num_points - N, replace=True)
-        ])
-    return points[idx], label[idx]
+    table_points = points[labels == 1]
+    bg_points = points[labels == 0]
+
+    num_table = int(num_points * table_ratio)
+    num_bg = num_points - num_table
+
+    # 如果某类数量不足，使用重复采样
+    def sample_with_repeat(pts, n):
+        if len(pts) == 0:
+            return np.zeros((n, 3))  # 如果完全没有点（极端情况），返回空白点
+        elif len(pts) >= n:
+            idx = np.random.choice(len(pts), n, replace=False)
+        else:
+            idx = np.concatenate([
+                np.arange(len(pts)),
+                np.random.choice(len(pts), n - len(pts), replace=True)
+            ])
+        return pts[idx]
+
+    sampled_table = sample_with_repeat(table_points, num_table)
+    sampled_bg = sample_with_repeat(bg_points, num_bg)
+
+    points_sampled = np.concatenate([sampled_table, sampled_bg], axis=0)
+    labels_sampled = np.concatenate([
+        np.ones(len(sampled_table), dtype=np.int64),
+        np.zeros(len(sampled_bg), dtype=np.int64)
+    ], axis=0)
+
+    # 打乱
+    perm = np.random.permutation(num_points)
+    return points_sampled[perm], labels_sampled[perm]
 
 # # 选择数据集和数据编号
 # dataset_path = DATASET_PATHS[5]
@@ -145,21 +168,24 @@ def save_all_processed_data():
 
         save_dir = os.path.join(SAVE_DIR, scene_name)
         os.makedirs(save_dir, exist_ok=True)  
+
         for data_id in tqdm(range(num_images), desc=scene_name):
             rgb, depth, label_polygons = get_data(dataset_path, data_id)
             if depth is None or label_polygons is None:
                 continue
+
             intrinsics = get_intrinsics(dataset_path)
             img_size = depth.shape[:2]
             polygons = extract_polygons_from_labels(label_polygons)
 
             points, point_labels = depth_to_pointcloud_with_labels(depth, intrinsics, polygons, img_size)
-            
-            if len(points) < 10:
-                continue  # 过滤异常样本
+            if len(points) < 10 or np.sum(point_labels == 1) == 0:
+                continue  # 跳过没有桌子或无效点
 
-            points_sampled, labels_sampled = sample_pointcloud(points, point_labels, NUM_POINTS)
+            # 👇 使用新的平衡采样函数
+            points_sampled, labels_sampled = balanced_sample_pointcloud(points, point_labels, NUM_POINTS, table_ratio=0.8)
 
+            # # 可视化（可选）
             # colors = np.zeros_like(points_sampled)
             # colors[:] = [0.5, 0.5, 0.5]  # 背景灰
             # colors[labels_sampled == 1] = [1.0, 0.0, 0.0]  # 桌子红
@@ -168,7 +194,10 @@ def save_all_processed_data():
             # pcd.points = o3d.utility.Vector3dVector(points_sampled)
             # pcd.colors = o3d.utility.Vector3dVector(colors)
             # o3d.visualization.draw_geometries([pcd])
-            #print("桌子点占比:", np.sum(labels_sampled) / NUM_POINTS)
+
+            print("桌子点占比:", np.sum(labels_sampled) / NUM_POINTS)
+
+            # 保存 .npz 文件
             filename = f"{scene_name}_{data_id}.npz"
             save_path = os.path.join(save_dir, filename)
             np.savez_compressed(save_path,
