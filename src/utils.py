@@ -19,6 +19,16 @@ DATASET_PATHS_HARVARD = [
     "data/CW2_dataset/harvard_tea_2/hv_tea2_2/"
 ]
 
+DATASET_REALSENSE = [
+    "data/realsense/20250328_104927/",
+    "data/realsense/20250328_105024/",
+    "data/realsense/20250328_105040/",
+    "data/realsense/20250328_105126/",
+    "data/realsense/20250328_105218/",
+    "data/realsense/20250328_105254/",
+    "data/realsense/20250328_105303/",
+]
+
 DATASET_PATHS_WITH_TABLE = ["data/CW2_dataset/harvard_c5/hv_c5_1/",
          "data/CW2_dataset/harvard_c6/hv_c6_1/",
          "data/CW2_dataset/mit_76_studyroom/76-1studyroom2/",

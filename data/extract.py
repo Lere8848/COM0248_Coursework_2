@@ -4,14 +4,14 @@ import cv2
 import os
 
 # 设置路径
-bag_file = "data/realsense/20250321_105312.bag"
-output_dir = "data/realsense/frames_output_20250321_105312"
+bag_file = "data/realsense/20250328_105126.bag"
+output_dir = "data/realsense/20250328_105126/"
 
 os.makedirs(output_dir, exist_ok=True)
 
-rgb_dir = os.path.join(output_dir, "rgb")
+rgb_dir = os.path.join(output_dir, "image")
 depth_vis_dir = os.path.join(output_dir, "depth_vis")
-depth_raw_dir = os.path.join(output_dir, "depth_raw")
+depth_raw_dir = os.path.join(output_dir, "depthTSDF")
 
 # 创建子目录
 os.makedirs(rgb_dir, exist_ok=True)
@@ -65,3 +65,35 @@ except RuntimeError:
 
 pipeline.stop()
 print(f"共提取 {frame_id} 帧，保存于 {output_dir}/")
+
+
+# 读取 .bag 文件
+pipeline = rs.pipeline()
+config = rs.config()
+config.enable_device_from_file(bag_file, repeat_playback=False)
+pipeline.start(config)
+
+# 等待一帧
+frames = pipeline.wait_for_frames()
+color_frame = frames.get_color_frame()
+
+# 获取内参
+intr = color_frame.profile.as_video_stream_profile().get_intrinsics()
+fx = intr.fx
+fy = intr.fy
+cx = intr.ppx
+cy = intr.ppy
+
+# 构造内参矩阵 K
+K = [
+    [fx, 0,  cx],
+    [0,  fy, cy],
+    [0,  0,   1]
+]
+
+# 写入文件
+with open(output_dir+"intrinsics.txt", "w") as f:
+    for row in K:
+        f.write(" ".join(map(str, row)) + "\n")
+
+print("K 矩阵已保存为 intrinsics.txt")
