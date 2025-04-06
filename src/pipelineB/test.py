@@ -13,7 +13,7 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import DATASET_PATHS_MIT, DATASET_PATHS_HARVARD
+from utils import DATASET_PATHS_MIT, DATASET_PATHS_HARVARD, DATASET_REALSENSE
 
 from pipelineBDataLoader import PipelineBRGBDataset
 from midas_depth_estimator import MiDaSDepthEstimator
@@ -50,7 +50,7 @@ def validate(model, loader, criterion, device):
 
 def main():
     print("Loading test dataset...")
-    test_datasets = [PipelineBRGBDataset(path) for path in DATASET_PATHS_HARVARD]
+    test_datasets = [PipelineBRGBDataset(path) for path in DATASET_REALSENSE]
     test_dataset = ConcatDataset(test_datasets)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=2, pin_memory=True)
 
