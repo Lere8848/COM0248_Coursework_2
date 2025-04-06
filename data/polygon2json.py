@@ -1,6 +1,9 @@
 import os
 import pickle
 import json
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import DATASET_PATHS_WITH_TABLE, DATASET_PATHS_WITHOUT_TABLE, MISSING_POLYGON_LABELS
 
 def extract_folder_key(path):
