@@ -1,5 +1,5 @@
 /data/CW2_dataset
-/data/realsense
+/data/realsense_backup
 /data/processed_data
 
 /src/pipelineB/__pycache__
