@@ -1,14 +1,16 @@
 import torch
 from torch import nn
-from dgcnn.pytorch.model import DGCNN
 from argparse import Namespace
+import matplotlib.pyplot as plt
+from dgcnn.pytorch.model import DGCNN
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils import DATASET_PATHS_HARVARD, DATASET_PATHS_MIT,visualize_point_cloud
 from Dataset import get_dataloader
 from tqdm import tqdm
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+train_epoch = 30
 data_dict = {
     'pointcloud': True,
     'labels': True,
@@ -31,14 +33,15 @@ model = nn.DataParallel(model).to(device)
 model.load_state_dict(torch.load('src/PipelineA/dgcnn/pytorch/pretrained/model.1024.t7'))
 classifier = nn.Linear(40,2).to(device)
 
-optimizer = torch.optim.Adam(classifier.parameters(), lr=0.0001, weight_decay=0.0001)
+optimizer = torch.optim.Adam(classifier.parameters(), lr=0.0001, weight_decay=0.001)
 criterion = nn.CrossEntropyLoss()
 
 # Training loop
 all_train_loss = []
 all_validation_loss = []
 min_validation_loss = float('inf')
-for epoch in range(10):
+min_validation_epoch = 0
+for epoch in range(train_epoch):
     model.eval()
     classifier.train()
     epoch_loss = 0.0
@@ -51,7 +54,7 @@ for epoch in range(10):
             pointcloud = pointcloud[:, :, ::downsample_idx]
             # visualize_point_cloud(pointcloud.cpu().permute(0, 2, 1).squeeze(0).numpy())
             label = data['labels']
-            if label is not None:
+            if label == 1:
                 output = torch.tensor([1,0],dtype=torch.float32,device=device)
             else:
                 output = torch.tensor([0,1],dtype=torch.float32,device=device)
@@ -85,10 +88,22 @@ for epoch in range(10):
         epoch_loss += loss.item()
     all_validation_loss.append(epoch_loss/len(test_dataloader))
     # Save the model if the validation loss is lower than the previous minimum
-    if epoch_loss < min_validation_loss:
-        min_validation_loss = epoch_loss
+    print(f"Epoch {epoch+1}/{train_epoch}, Train Loss: {all_train_loss[-1]}, Validation Loss: {all_validation_loss[-1]}")
+    if all_validation_loss[-1] < min_validation_loss:
+        min_validation_loss = all_validation_loss[-1]
+        min_validation_epoch = epoch
         torch.save(classifier.state_dict(), 'src/PipelineA/model/classifier.pth')
         torch.save(model.state_dict(), 'src/PipelineA/model/dgcnn.pth')
-    print(f"Epoch {epoch+1}/{10}, Train Loss: {all_train_loss[-1]}, Validation Loss: {all_validation_loss[-1]}")
+        print(f"Model saved at epoch {epoch+1} with validation loss: {all_validation_loss[-1]:.4f}")
+
+# Visualize the training and validation loss
+plt.plot(all_train_loss, label='Train Loss')
+plt.plot(all_validation_loss, label='Validation Loss')
+plt.scatter(min_validation_epoch, min_validation_loss, color='red', label='Best Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training and Validation Loss')
+plt.legend()
+plt.show()
     
 
