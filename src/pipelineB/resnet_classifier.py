@@ -6,7 +6,7 @@ import torchvision.models as models
 class ResNetDepthClassifier(nn.Module):
     def __init__(self, num_classes=2):  # 2 classes: 0 (no table), 1 (has table)
         super().__init__()
-        self.model = models.resnet18()  # pre built ResNet-18
+        self.model = models.resnet50()  # ResNet-50
         
         self.model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
@@ -36,14 +36,14 @@ if __name__ == "__main__":  # test
     # single image test
     depth_single = torch.randn(480, 640)  # fake depth map
     output_single = model(depth_single)
-    print(f"单张深度图: {depth_single.shape} -> 输出: {output_single.shape}")
+    print(f"single: {depth_single.shape} -> output: {output_single.shape}")
     
     # batch test
     depth_batch = torch.randn(4, 480, 640)  # batch 4
     output_batch = model(depth_batch)
-    print(f"批量深度图: {depth_batch.shape} -> 输出: {output_batch.shape}")
+    print(f"batch: {depth_batch.shape} -> output: {output_batch.shape}")
     
     # classification test
     probs = F.softmax(output_batch, dim=1)
     predictions = torch.argmax(probs, dim=1)
-    print(f"预测结果: {predictions}")  # 0: no table, 1: has table
+    print(f"output pred: {predictions}")  # 0: no table, 1: has table

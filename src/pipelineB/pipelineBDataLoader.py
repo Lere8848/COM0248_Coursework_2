@@ -31,9 +31,9 @@ class PipelineBRGBDataset(Dataset):
         return self.num_samples
 
     def __getitem__(self, idx):
+        rgb, depth, _ = get_data(self.dataset_path, idx)
+
         # --get rgb image--
-        rgb, _, _ = get_data(self.dataset_path, idx)
-        
         if rgb is None:
             return self.__getitem__((idx + 1) % self.num_samples)
         if self.transform:
@@ -49,11 +49,16 @@ class PipelineBRGBDataset(Dataset):
         polygon = self.label_dict.get(frame_name, None) # check from polygon_label_dict.json
         label = 1 if polygon is not None else 0
 
+        # -- get depth --
+        if depth is None:
+            return self.__getitem__((idx + 1) % self.num_samples)
+
         # to tensor
         rgb = torch.tensor(rgb, dtype=torch.float32).permute(2, 0, 1) / 255.0  # [3,H,W]
         label = torch.tensor(label, dtype=torch.long) # [1]/[0]
+        depth = torch.tensor(depth, dtype=torch.float32) # [H,W]
 
-        return rgb, label
+        return rgb, depth, label
 
 
 if __name__ == "__main__": # test dataset
@@ -69,10 +74,11 @@ if __name__ == "__main__": # test dataset
     dataloader = DataLoader(combined_dataset, batch_size=4, shuffle=True)
     
     # Test the DataLoader
-    for batch_idx, (rgb_batch, label_batch) in enumerate(dataloader):
+    for batch_idx, (rgb_batch, label_batch, depth_batch) in enumerate(dataloader):
         print(f"Batch {batch_idx}:")
-        print(f"RGB batch shape: {rgb_batch.shape}, label batch shape: {label_batch.shape}") # [4, 3, H, W], [4]
+        print(f"RGB batch shape: {rgb_batch.shape}, label batch shape: {label_batch.shape}, depth batch shape: {depth_batch.shape}") # [4, 3, H, W], [4], [4, H, W]
         print(f"RGB batch min max: [{rgb_batch.min()}, {rgb_batch.max()}], type: {rgb_batch.dtype}")
-        print(f"Label batch type: {label_batch.dtype}, values: {label_batch}")
+        print(f"Depth batch min max: [{depth_batch.min()}, {depth_batch.max()}], type: {depth_batch.dtype}")
+        print(f"Label batch type: {label_batch.dtype}")
         if batch_idx == 2:  # Stop after testing the first 3 batches (0, 1, 2)
             break

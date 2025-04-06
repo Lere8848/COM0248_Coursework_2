@@ -18,6 +18,8 @@ from utils import DATASET_PATHS_MIT, DATASET_PATHS_HARVARD
 from pipelineBDataLoader import PipelineBRGBDataset
 from midas_depth_estimator import MiDaSDepthEstimator
 from resnet_classifier import ResNetDepthClassifier
+from mlp_classifier import MLPDepthClassifier
+from cnn_mlp_classifier import CNNMLPDepthClassifier
 from pipelineB_model import PipelineBModel
 
 
@@ -34,7 +36,7 @@ def validate(model, loader, criterion, device):
     total = 0
 
     with torch.no_grad():
-        for rgb, labels in tqdm(loader, desc="Testing"):
+        for rgb, _, labels in tqdm(loader, desc="Testing"):
             rgb, labels = rgb.to(device), labels.to(device)
             outputs = model(rgb)
             loss = criterion(outputs, labels)
@@ -55,9 +57,13 @@ def main():
     print(f"Test dataset size: {len(test_dataset)}")
 
     print("Initializing model...")
-    midas = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_large_384.pt", device=DEVICE)
+    midas = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_hybrid_384.pt", device=DEVICE)
     resnet = ResNetDepthClassifier(num_classes=2).to(DEVICE)
-    model = PipelineBModel(midas, resnet, freeze_midas=True).to(DEVICE)
+    mlp = MLPDepthClassifier(num_classes=2).to(DEVICE)
+    cnn_mlp = CNNMLPDepthClassifier(num_classes=2).to(DEVICE)
+    # model = PipelineBModel(midas, resnet, freeze_midas=True).to(DEVICE)
+    # model = PipelineBModel(midas, mlp, freeze_midas=True).to(DEVICE)
+    model = PipelineBModel(midas, cnn_mlp, freeze_midas=True).to(DEVICE)
 
     print("Loading saved weights...")
     checkpoint = torch.load(MODEL_PATH, map_location=DEVICE)

@@ -21,7 +21,7 @@ class MiDaSDepthEstimator:
         self.device = device
         self.model = DPTDepthModel(
             path=model_path,
-            backbone='vitl16_384',
+            backbone='vitb_rn50_384', # 'vitl16_384' is too big
             non_negative=True,
         ).to(device)
         self.model.eval()
@@ -62,6 +62,18 @@ class MiDaSDepthEstimator:
         depth = torch.tensor(depth, dtype=torch.float32) # [480, 640]
         
         return depth
+    
+    # for fine-tuning, gradient needed
+    def forward_tensor(self, img_tensor: torch.Tensor, orig_size) -> torch.Tensor:
+        prediction = self.model(img_tensor)
+        prediction = torch.nn.functional.interpolate(
+            prediction.unsqueeze(1),
+            size=orig_size,
+            mode="bicubic",
+            align_corners=False,
+        ).squeeze(1)  # [B, H, W]
+
+        return prediction
 
 
 if __name__ == "__main__": # test
@@ -69,7 +81,7 @@ if __name__ == "__main__": # test
     img_files = [f for f in os.listdir(img_dir) if f.endswith(".jpg")]
 
     # create estimator
-    estimator = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_large_384.pt")
+    estimator = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_hybrid_384.pt")
 
     for img_file in img_files:
         img_path = os.path.join(img_dir, img_file)
