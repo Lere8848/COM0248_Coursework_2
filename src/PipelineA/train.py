@@ -6,7 +6,7 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils import DATASET_PATHS_HARVARD, DATASET_PATHS_MIT,visualize_point_cloud
 from Dataset import get_dataloader
-
+from tqdm import tqdm
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 data_dict = {
@@ -31,14 +31,18 @@ model = nn.DataParallel(model).to(device)
 model.load_state_dict(torch.load('src/PipelineA/dgcnn/pytorch/pretrained/model.1024.t7'))
 classifier = nn.Linear(40,2).to(device)
 
-optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001, weight_decay=0.0001)
+optimizer = torch.optim.Adam(classifier.parameters(), lr=0.0001, weight_decay=0.0001)
 criterion = nn.CrossEntropyLoss()
 
 # Training loop
+all_train_loss = []
+all_validation_loss = []
+min_validation_loss = float('inf')
 for epoch in range(10):
     model.eval()
     classifier.train()
-    for i, batch in enumerate(train_dataloader):
+    epoch_loss = 0.0
+    for i, batch in tqdm(enumerate(train_dataloader),total=len(train_dataloader)):
         loss = torch.tensor(0.0, device=device)
         optimizer.zero_grad()
         for data in batch:
@@ -57,9 +61,34 @@ for epoch in range(10):
             loss += criterion(pred, output)
         loss.backward()
         optimizer.step()
-        print(f"Epoch {epoch}, Batch {i}, Loss: {loss.item()}")
-    # Save the model checkpoint
-    torch.save(model.state_dict(), f"dgcnn_epoch_{epoch}.pth")
-    torch.save(classifier.state_dict(), f"classifier_epoch_{epoch}.pth")
+        epoch_loss += loss.item()
+    all_train_loss.append(epoch_loss/len(train_dataloader))
+
+    classifier.eval()
+    epoch_loss = 0.0
+    for i,batch in tqdm(enumerate(test_dataloader),total=len(test_dataloader),colour='green'):
+        loss = torch.tensor(0.0, device=device)
+        for data in batch:
+            pointcloud = data['pointcloud']
+            downsample_idx = pointcloud.shape[2]//16384
+            pointcloud = pointcloud[:, :, ::downsample_idx]
+            # visualize_point_cloud(pointcloud.cpu().permute(0, 2, 1).squeeze(0).numpy())
+            label = data['labels']
+            if label is not None:
+                output = torch.tensor([1,0],dtype=torch.float32,device=device)
+            else:
+                output = torch.tensor([0,1],dtype=torch.float32,device=device)
+            with torch.no_grad():
+                pred = model(pointcloud)
+            pred = classifier(pred).squeeze(0)
+            loss += criterion(pred, output)
+        epoch_loss += loss.item()
+    all_validation_loss.append(epoch_loss/len(test_dataloader))
+    # Save the model if the validation loss is lower than the previous minimum
+    if epoch_loss < min_validation_loss:
+        min_validation_loss = epoch_loss
+        torch.save(classifier.state_dict(), 'src/PipelineA/model/classifier.pth')
+        torch.save(model.state_dict(), 'src/PipelineA/model/dgcnn.pth')
+    print(f"Epoch {epoch+1}/{10}, Train Loss: {all_train_loss[-1]}, Validation Loss: {all_validation_loss[-1]}")
     
 
