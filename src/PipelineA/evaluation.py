@@ -33,9 +33,7 @@ model = DGCNN(args, output_channels=40)
 model = nn.DataParallel(model).to(device)
 model.load_state_dict(torch.load('src/PipelineA/model/dgcnn.pth'))
 classifier =nn.Sequential(
-    nn.Linear(40, 128),
-    nn.ReLU(),
-    nn.Linear(128, 2),
+    nn.Linear(40, 2),
 ).to(device)
 
 classifier.load_state_dict(torch.load('src/PipelineA/model/classifier.pth'))
