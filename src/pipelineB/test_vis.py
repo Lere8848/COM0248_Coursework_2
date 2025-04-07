@@ -59,7 +59,7 @@ def main():
                     confidence = probs[0][prediction].item()
                 
                 # Create plot
-                plt.figure(figsize=(12, 10))
+                plt.figure(figsize=(8, 6))
                 
                 # Display image
                 ax = plt.subplot(1, 1, 1)

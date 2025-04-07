@@ -21,11 +21,13 @@ from resnet_classifier import ResNetDepthClassifier
 from mlp_classifier import MLPDepthClassifier
 from cnn_mlp_classifier import CNNMLPDepthClassifier
 from pipelineB_model import PipelineBModel
+from evaluation import evaluate_predictions
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-SAVE_DIR = "weights/pipelineB"
-MODEL_PATH = os.path.join(SAVE_DIR, 'best_pipelineB_model.pth')
+WEIGHT_DIR = "weights/pipelineB"
+RESULTS_DIR = "results/pipelineB"
+MODEL_PATH = os.path.join(WEIGHT_DIR, 'best_pipelineB_model.pth')
 
 BATCH_SIZE = 4
 
@@ -35,6 +37,10 @@ def validate(model, loader, criterion, device):
     correct = 0
     total = 0
 
+    all_labels = []
+    all_preds = []
+    all_probs = []
+
     with torch.no_grad():
         for rgb, _, labels in tqdm(loader, desc="Testing"):
             rgb, labels = rgb.to(device), labels.to(device)
@@ -42,11 +48,17 @@ def validate(model, loader, criterion, device):
             loss = criterion(outputs, labels)
 
             total_loss += loss.item()
-            _, predicted = outputs.max(1)
-            total += labels.size(0)
-            correct += predicted.eq(labels).sum().item()
+            probs = torch.softmax(outputs, dim=1)
+            preds = torch.argmax(probs, dim=1)
 
-    return total_loss / len(loader), correct / total
+            all_labels.extend(labels.cpu().tolist())
+            all_preds.extend(preds.cpu().tolist())
+            all_probs.extend(probs[:, 1].cpu().tolist())  # prob for class 1
+
+            total += labels.size(0)
+            correct += preds.eq(labels).sum().item()
+
+    return total_loss / len(loader), correct / total, all_labels, all_preds, all_probs
 
 def main():
     print("Loading test dataset...")
@@ -70,8 +82,15 @@ def main():
     model.load_state_dict(checkpoint['model_state_dict'])
 
     criterion = torch.nn.CrossEntropyLoss()
-    test_loss, test_acc = validate(model, test_loader, criterion, DEVICE)
+    test_loss, test_acc, y_true, y_pred, y_prob = validate(model, test_loader, criterion, DEVICE)
     print(f"Test set performance | Loss: {test_loss:.4f} | Accuracy: {test_acc:.4f}")
+
+    evaluate_predictions(
+        y_true=y_true,
+        y_pred=y_pred,
+        y_prob=y_prob,
+        save_dir=RESULTS_DIR,
+    )
 
 if __name__ == "__main__":
     main()
