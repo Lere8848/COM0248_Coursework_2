@@ -10,7 +10,7 @@ from Dataset import get_dataloader
 from tqdm import tqdm
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-train_epoch = 30
+train_epoch = 100
 data_dict = {
     'pointcloud': True,
     'labels': True,
@@ -31,9 +31,13 @@ args = Namespace(
 model = DGCNN(args, output_channels=40)
 model = nn.DataParallel(model).to(device)
 model.load_state_dict(torch.load('src/PipelineA/dgcnn/pytorch/pretrained/model.1024.t7'))
-classifier = nn.Linear(40,2).to(device)
+classifier =nn.Sequential(
+    nn.Linear(40, 128),
+    nn.ReLU(),
+    nn.Linear(128, 2),
+).to(device)
 
-optimizer = torch.optim.Adam(classifier.parameters(), lr=0.0001, weight_decay=0.001)
+optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001, weight_decay=1e-4)
 criterion = nn.CrossEntropyLoss()
 
 # Training loop
@@ -50,7 +54,7 @@ for epoch in range(train_epoch):
         optimizer.zero_grad()
         for data in batch:
             pointcloud = data['pointcloud']
-            downsample_idx = pointcloud.shape[2]//16384
+            downsample_idx = pointcloud.shape[2]//8192
             pointcloud = pointcloud[:, :, ::downsample_idx]
             # visualize_point_cloud(pointcloud.cpu().permute(0, 2, 1).squeeze(0).numpy())
             label = data['labels']
@@ -73,7 +77,7 @@ for epoch in range(train_epoch):
         loss = torch.tensor(0.0, device=device)
         for data in batch:
             pointcloud = data['pointcloud']
-            downsample_idx = pointcloud.shape[2]//16384
+            downsample_idx = pointcloud.shape[2]//8192
             pointcloud = pointcloud[:, :, ::downsample_idx]
             # visualize_point_cloud(pointcloud.cpu().permute(0, 2, 1).squeeze(0).numpy())
             label = data['labels']

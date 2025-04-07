@@ -19,8 +19,9 @@ data_dict = {
     }
 
 # Load the dataset
-# train_dataloader = get_dataloader(DATASET_PATHS_MIT,data_dict, batch_size=1, shuffle=True,device=device)
-test_dataloader = get_dataloader([DATASET_REALSENSE[0]],data_dict, batch_size=1, shuffle=False,device=device)
+train_dataloader = get_dataloader(DATASET_PATHS_MIT,data_dict, batch_size=1, shuffle=True,device=device)
+test_dataloader = get_dataloader(DATASET_REALSENSE,data_dict, batch_size=1, shuffle=False,device=device)
+test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=1, shuffle=False,device=device)
 
 # Initialize the model
 args = Namespace(
@@ -30,8 +31,13 @@ args = Namespace(
 )
 model = DGCNN(args, output_channels=40)
 model = nn.DataParallel(model).to(device)
-model.load_state_dict(torch.load('src/PipelineA/dgcnn/pytorch/pretrained/model.1024.t7'))
-classifier = nn.Linear(40,2).to(device)
+model.load_state_dict(torch.load('src/PipelineA/model/dgcnn.pth'))
+classifier =nn.Sequential(
+    nn.Linear(40, 128),
+    nn.ReLU(),
+    nn.Linear(128, 2),
+).to(device)
+
 classifier.load_state_dict(torch.load('src/PipelineA/model/classifier.pth'))
 model.eval()
 classifier.eval()
@@ -40,7 +46,7 @@ correct_images = 0
 for i, batch in tqdm(enumerate(test_dataloader),total=len(test_dataloader)):
     for data in batch:
         pointcloud = data['pointcloud']
-        downsample_idx = pointcloud.shape[2]//16384
+        downsample_idx = pointcloud.shape[2]//8192
         pointcloud = pointcloud[:, :, ::downsample_idx]
         # visualize_point_cloud(pointcloud.cpu().permute(0, 2, 1).squeeze(0).numpy())
         label = data['labels']
