@@ -19,8 +19,8 @@ data_dict = {
     }
 
 # Load the dataset
-train_dataloader = get_dataloader(DATASET_PATHS_MIT,data_dict, batch_size=2, shuffle=True,device=device)
-test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=2, shuffle=False,device=device)
+train_dataloader = get_dataloader(DATASET_PATHS_MIT,data_dict, batch_size=8, shuffle=True,device=device)
+test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=8, shuffle=False,device=device)
 
 # Initialize the model
 args = Namespace(
@@ -30,7 +30,7 @@ args = Namespace(
 )
 model = DGCNN(args, output_channels=40)
 model = nn.DataParallel(model).to(device)
-model.load_state_dict(torch.load('src/PipelineA/dgcnn/pytorch/pretrained/model.1024.t7'))
+# model.load_state_dict(torch.load('src/PipelineA/dgcnn/pytorch/pretrained/model.1024.t7'))
 classifier =nn.Sequential(
     nn.Linear(40, 2),
 ).to(device)
@@ -56,9 +56,9 @@ for epoch in range(train_epoch):
         outputs = []
         for data in batch:
             pointcloud = data['pointcloud']
-            downsample_idx = pointcloud.shape[2]//8192
+            downsample_idx = pointcloud.shape[2]//2048
             pointcloud = pointcloud[:, :, ::downsample_idx]
-            pointclouds.append(pointcloud[:,:,:8192])
+            pointclouds.append(pointcloud[:,:,:2048])
             
             label = data['labels']
             if label == 1:
@@ -74,8 +74,7 @@ for epoch in range(train_epoch):
             stacked_outputs = torch.stack(outputs, dim=0)
             
             # Forward pass in one go
-            with torch.no_grad():
-                preds = model(stacked_pointclouds)
+            preds = model(stacked_pointclouds)
             preds = classifier(preds)
             # Calculate loss
             loss = criterion(preds, stacked_outputs)
@@ -95,9 +94,9 @@ for epoch in range(train_epoch):
         outputs = []
         for data in batch:
             pointcloud = data['pointcloud']
-            downsample_idx = pointcloud.shape[2]//8192
+            downsample_idx = pointcloud.shape[2]//2048
             pointcloud = pointcloud[:, :, ::downsample_idx]
-            pointclouds.append(pointcloud[:,:,:8192])
+            pointclouds.append(pointcloud[:,:,:2048])
             
             label = data['labels']
             if label == 1:

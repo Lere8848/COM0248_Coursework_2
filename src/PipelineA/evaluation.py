@@ -41,10 +41,10 @@ model.eval()
 classifier.eval()
 total_images = 0
 correct_images = 0
-for i, batch in tqdm(enumerate(test_dataloader),total=len(test_dataloader)):
+for i, batch in tqdm(enumerate(train_dataloader),total=len(train_dataloader)):
     for data in batch:
         pointcloud = data['pointcloud']
-        downsample_idx = pointcloud.shape[2]//8192
+        downsample_idx = pointcloud.shape[2]//2048
         pointcloud = pointcloud[:, :, ::downsample_idx]
         # visualize_point_cloud(pointcloud.cpu().permute(0, 2, 1).squeeze(0).numpy())
         label = data['labels']
@@ -53,7 +53,7 @@ for i, batch in tqdm(enumerate(test_dataloader),total=len(test_dataloader)):
         else:
             output = torch.tensor([0,1],dtype=torch.float32,device=device)
         with torch.no_grad():
-            pred = model(pointcloud)
+            pred = model(pointcloud[:,:,:2048])
             pred = classifier(pred).squeeze(0)
         if torch.argmax(pred) == torch.argmax(output):
             correct_images += 1
