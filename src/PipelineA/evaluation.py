@@ -19,7 +19,7 @@ data_dict = {
     }
 
 # Load the dataset
-train_dataloader = get_dataloader(DATASET_PATHS_MIT,data_dict, batch_size=1, shuffle=True,device=device)
+# test_dataloader = get_dataloader(DATASET_PATHS_MIT,data_dict, batch_size=1, shuffle=False,device=device)
 test_dataloader = get_dataloader(DATASET_REALSENSE,data_dict, batch_size=1, shuffle=False,device=device)
 test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=1, shuffle=False,device=device)
 
@@ -41,7 +41,7 @@ model.eval()
 classifier.eval()
 total_images = 0
 correct_images = 0
-for i, batch in tqdm(enumerate(train_dataloader),total=len(train_dataloader)):
+for i, batch in tqdm(enumerate(test_dataloader),total=len(test_dataloader)):
     for data in batch:
         pointcloud = data['pointcloud']
         downsample_idx = pointcloud.shape[2]//2048
