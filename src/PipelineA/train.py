@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from dgcnn.pytorch.model import DGCNN
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils import DATASET_PATHS_HARVARD, DATASET_PATHS_MIT,DATASET_REALSENSE,visualize_point_cloud
+from utils import DATASET_PATHS_HARVARD, DATASET_PATHS_MIT,visualize_point_cloud
 from Dataset import get_dataloader
 from tqdm import tqdm
 
@@ -19,8 +19,8 @@ data_dict = {
     }
 
 # Load the dataset
-train_dataloader = get_dataloader(DATASET_PATHS_MIT+DATASET_REALSENSE,data_dict, batch_size=8, shuffle=True,device=device)
-test_dataloader = get_dataloader(DATASET_REALSENSE,data_dict, batch_size=8, shuffle=False,device=device)
+train_dataloader = get_dataloader(DATASET_PATHS_MIT,data_dict, batch_size=8, shuffle=True,device=device)
+test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=8, shuffle=False,device=device)
 
 # Initialize the model
 args = Namespace(
