@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from dgcnn.pytorch.model import DGCNN
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils import DATASET_PATHS_HARVARD, DATASET_PATHS_MIT,visualize_point_cloud
+from utils import DATASET_PATHS_HARVARD, DATASET_PATHS_MIT,DATASET_REALSENSE,visualize_point_cloud
 from Dataset import get_dataloader
 from tqdm import tqdm
 
@@ -24,18 +24,18 @@ test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=8, 
 
 # Initialize the model
 args = Namespace(
-    k=20,            # 邻居数量
+    k=25,            # 邻居数量
     emb_dims=1024,   # embedding维度
     dropout=0.5      # dropout比例
 )
-model = DGCNN(args, output_channels=40)
+model = DGCNN(args, output_channels=2)
 model = nn.DataParallel(model).to(device)
 # model.load_state_dict(torch.load('src/PipelineA/dgcnn/pytorch/pretrained/model.1024.t7'))
 classifier =nn.Sequential(
-    nn.Linear(40, 2),
+    nn.Identity(),
 ).to(device)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-3)
 optimizer.add_param_group({'params': classifier.parameters(), 'lr': 0.0001})
 criterion = nn.CrossEntropyLoss()
 
@@ -56,9 +56,9 @@ for epoch in range(train_epoch):
         outputs = []
         for data in batch:
             pointcloud = data['pointcloud']
-            downsample_idx = pointcloud.shape[2]//2048
+            downsample_idx = pointcloud.shape[2]//4096
             pointcloud = pointcloud[:, :, ::downsample_idx]
-            pointclouds.append(pointcloud[:,:,:2048])
+            pointclouds.append(pointcloud[:,:,:4096])
             
             label = data['labels']
             if label == 1:
@@ -94,9 +94,9 @@ for epoch in range(train_epoch):
         outputs = []
         for data in batch:
             pointcloud = data['pointcloud']
-            downsample_idx = pointcloud.shape[2]//2048
+            downsample_idx = pointcloud.shape[2]//4096
             pointcloud = pointcloud[:, :, ::downsample_idx]
-            pointclouds.append(pointcloud[:,:,:2048])
+            pointclouds.append(pointcloud[:,:,:4096])
             
             label = data['labels']
             if label == 1:
