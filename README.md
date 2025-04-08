@@ -143,6 +143,7 @@ project_root/
 │   ├— utils.py                  # Shared utilities (metrics, transforms)
 │   └— env_test.py               # Environment testing script
 ├— results/                      # Output results, logs, visualizations
+├— weights/                      # Save best weights for each pipeline
 ├— requirements.txt
 └— README.md
 ```
