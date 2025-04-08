@@ -20,8 +20,8 @@ data_dict = {
 
 # Load the dataset
 # test_dataloader = get_dataloader(DATASET_PATHS_MIT,data_dict, batch_size=1, shuffle=False,device=device)
-test_dataloader = get_dataloader(DATASET_REALSENSE,data_dict, batch_size=1, shuffle=False,device=device)
-# test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=1, shuffle=False,device=device)
+# test_dataloader = get_dataloader(DATASET_REALSENSE,data_dict, batch_size=1, shuffle=False,device=device)
+test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=1, shuffle=False,device=device)
 
 # Initialize the model
 args = Namespace(
@@ -36,7 +36,6 @@ classifier =nn.Sequential(
     nn.Identity(),
 ).to(device)
 
-classifier.load_state_dict(torch.load('src/PipelineA/model/classifier.pth'))
 model.eval()
 classifier.eval()
 total_images = 0

@@ -19,8 +19,8 @@ data_dict = {
     }
 
 # Load the dataset
-train_dataloader = get_dataloader(DATASET_PATHS_MIT,data_dict, batch_size=8, shuffle=True,device=device)
-test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=8, shuffle=False,device=device)
+train_dataloader = get_dataloader(DATASET_PATHS_MIT+DATASET_REALSENSE,data_dict, batch_size=8, shuffle=True,device=device)
+test_dataloader = get_dataloader(DATASET_REALSENSE,data_dict, batch_size=8, shuffle=False,device=device)
 
 # Initialize the model
 args = Namespace(
@@ -125,7 +125,6 @@ for epoch in range(train_epoch):
     if all_validation_loss[-1] < min_validation_loss:
         min_validation_loss = all_validation_loss[-1]
         min_validation_epoch = epoch
-        torch.save(classifier.state_dict(), 'src/PipelineA/model/classifier.pth')
         torch.save(model.state_dict(), 'src/PipelineA/model/dgcnn.pth')
         print(f"Model saved at epoch {epoch+1} with validation loss: {all_validation_loss[-1]:.4f}")
 
