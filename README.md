@@ -232,7 +232,7 @@ The best model weights are provided and stored at：
 weights/pipelineB/best_pipelineB_model.pth
 ```
 
-Remember to load MiDaS pre-trained weight [dpt_hybrid_384.pt]((https://github.com/isl-org/MiDaS/releases/download/v3/dpt_hybrid_384.pt)) at:
+Remember to load MiDaS pre-trained weight [dpt_hybrid_384.pt](https://github.com/isl-org/MiDaS/releases/download/v3/dpt_hybrid_384.pt) at:
 ```
 src/pipelineB/weights/
 ```
