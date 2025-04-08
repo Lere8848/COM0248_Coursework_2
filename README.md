@@ -15,7 +15,7 @@ zewen.qu.24@ucl.ac.uk
 
 ## Project Introduction
 
-This project implements three different pipelines for **binary classification** and **point cloud segmentation** on a dataset derived from **Sun3D**. The task is to determine whether a **table** is present in a given scene.  
+This project implements three different pipelines for binary classification and point cloud segmentation on a dataset derived from Sun3D. The task is to determine whether a table is present in a given scene.  
 
 The three pipelines are:
 
@@ -27,13 +27,17 @@ The three pipelines are:
 
 ## Main Features
 
+### Data Collection
+
+Shot with `realsense D455`, parsed using `realsense SDK` for PC, and stored in `.bag` format.
+
 ### Data Processing
 
-- 补充下polygon到点云GT label的Processing。
-- **polygon2json**: Converts polygon annotations to JSON format indicating "table" / "no table" presence. (for classification)
-- **extract**: Extracts and aligns RGB and depth images from RealSense `.bag` files.
-- **realsense_self_label**: Allows manual annotation and labeling for self-captured RealSense data.
-- **check_depth**: Utility for depth visualization and validation (e.g. alignment check, missing values).
+- **Polygon to Point Cloud Segmentation Labels**: pipeline C 补充
+
+- **Polygon to Classification Labels**: To enable binary classification, we process the original polygon annotations into a simplified JSON format. The `polygon2json.py` script generates a binary label (0/1) for each frame, indicating the presence or absence of any table.
+
+- **Processing Self-Captured RealSense Data**: For self-captured RealSense `.bag` recordings, we extract `aligned RGB`, `depth frames` and `intrinsic parameters` using the `extract.py` script. Then, the `realsense_self_label.py` tool is used to manually annotate frames with classification GT labels (table / no table), stored in the same format JSON file.  
 
 
 ### Pipeline A – Depth → Point Cloud → Classification
@@ -45,10 +49,11 @@ The three pipelines are:
 
 ### Pipeline B – RGB → Depth → Classification
 
-- Uses a pre-trained monocular depth estimation model (e.g. MiDaS)
-- Uses the estimated depth to classify presence of a table
-- Evaluates both classification (Accuracy, Precision, Recall, F1) and depth estimation (RMSE, MAE)
-- 补充
+- **Monocular Depth Estimation**: Uses a pre-trained **MiDaS** model with the `vitb_rn50_384` backbone for estimating depth from RGB images.  
+  The MiDaS model is obtained from the official repository: [MiDaS GitHub](https://github.com/isl-org/MiDaS.git).
+- **Depth-based Classification**: Applies a custom CNN-MLP classifier to the estimated depth map for binary classification (table / no table).  
+  The classifier consists of a lightweight convolutional feature extractor followed by an MLP, in `cnn_mlp_classifier.py`.
+- This pipeline is implemented in `pipelineB_model.py`, combining MiDaS and `CNNMLPDepthClassifier` as an end-to-end RGB-to-table prediction model.
 
 ### Pipeline C – Depth → Point Cloud → Segmentation
 
@@ -65,7 +70,16 @@ The three pipelines are:
 补充
 
 ### Pipeline B
-补充
+Pipeline B consists of two main components:
+
+- A **pre-trained MiDaS** depth estimation model `dpt_hybrid_384`(with a `vitb_rn50_384` backbone) that converts input RGB images into depth maps.
+- A custom **CNN-MLP classifier** that takes the estimated depth map as input and predicts whether a table is present.
+
+The MiDaS model is fine-tuned, and the classifier is trained from scratch using the given dataset. The full model is implemented as a unified module in `pipelineB_model.py`.
+
+The structure is illustrated below:
+
+![Pipeline B Structure](figures/pipelineB_model.png)
 
 ### Pipeline C
 补充
@@ -82,21 +96,21 @@ The three pipelines are:
 
 ### Pipeline B – Depth Estimation + Classification
 
-**Depth Estimation**
+Depth Estimation:
 
-| Metric | Value |
-|--------|-------|
-| RMSE   |       |
-| MAE    |       |
+| Metric | Havard Dataset | Self Realsense Dataset |
+|--------|-------------|------------------------|
+| RMSE   |    八  | 方 |
+| MAE    |     来  | 财 |
 
-**Classification**
+Classification:
 
-| Metric     | Value |
-|------------|-------|
-| Accuracy   |       |
-| Precision  |       |
-| Recall     |       |
-| F1 Score   |       |
+| Metric     | Havard Dataset | Self Realsense Dataset |
+|------------|-------------|------------------------|
+| Accuracy   | 0.8980      |0.8200 |
+| Precision  | 0.8947      |0.8605 |
+| Recall     | 0.9714      | 0.9250 |
+| F1 Score   | 0.9315      |  0.8916|
 
 ---
 
@@ -106,7 +120,7 @@ The three pipelines are:
 
 ---
 
-## Project Structure
+## Project Code Structure
 The overall structure of the project is shown below：
 
 ```
@@ -135,7 +149,7 @@ project_root/
 
 Below are the specific structures of each pipeline:
 
-### PipelineA Structure
+### PipelineA
 补充
 ```
 src/PipelineA/
@@ -145,17 +159,24 @@ src/PipelineA/
 └— dataloader.py      # Dataset wrapper for point clouds
 ```
 
-### pipelineB Structure
-补充
+### pipelineB 
 ```
 src/pipelineB/
-│── depth_estimator.py # Wrapper for MiDaS or other depth model
-│── classifier.py      # Classification model on estimated depth
-│── train.py
-│── eval.py
+├── MiDaS/                     # MiDaS depth estimation model 
+├── weights/                   # Pre-trained MiDaS weights
+├── cnn_mlp_classifier.py      # CNN + MLP classifier for estimated depth
+├── midas_depth_estimator.py   # MiDaS wrapper for RGB-to-depth conversion
+├── mlp_classifier.py          # Simple MLP classifier
+├── resnet_classifier.py       # ResNet-based depth classifier
+├── pipelineB_model.py         # Unified pipeline: depth estimation + classification
+├── pipelineBDataLoader.py     # Custom DataLoader for pipelineB based on src/Dataset.py
+├── train.py                   # Training script
+├── test.py                    # Batch evaluation script
+├── test_vis.py                # Visualization: show RGB with predicted label
+└── evaluation.py              # Evaluation metrics (accuracy, precision, recall, F1)
 ```
 
-### PipelineC Structure
+### PipelineC 
 补充
 ```
 src/PipelineC/
@@ -178,27 +199,51 @@ Install required packages with:
 pip install -r requirements.txt
 ```
 
----
+### 2. Check Dadaset
 
-### 2. Run Pipeline A
+Make sure the dataset is stored with the correct format in the `data/`:
+```
+data/
+├— realsense_testset/
+│   ├— 20250328_104927/           
+│   │    ├— depthTSDF/            # store depth image
+│   │    ├— image/                # store rgb image
+│   │    ├— label.json            # store GT label for classification
+│   │    └— intrinsics.txt        # store Realsense D455 internal paras
+│   ├— 20250328_105024/
+│   ...
+```
+
+### 3. Run Pipeline A
 
 ```bash
 cd src/PipelineA
 补充下
 ```
 
----
 
-### 3. Run Pipeline B
+### 4. Run Pipeline B
+Make sure the submodule `src/pipelineB/MiDas` is included, which can be downloaded [Here](https://github.com/isl-org/MiDaS)
 
-```bash
-cd src/pipelineB
-补充
+The best model weights are provided and stored at：
+
+```
+weights/pipelineB/best_pipelineB_model.pth
 ```
 
----
+Remember to load MiDaS pre-trained weight [dpt_hybrid_384.pt]((https://github.com/isl-org/MiDaS/releases/download/v3/dpt_hybrid_384.pt)) at:
+```
+src/pipelineB/weights/
+```
 
-### 4. Run Pipeline C
+Then run the following command to evaluate the model:
+```bash
+cd coursework_2
+python src/pipelineB/test.py
+```
+
+
+### 5. Run Pipeline C
 
 ```bash
 cd src/PipelineC

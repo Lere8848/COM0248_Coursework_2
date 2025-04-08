@@ -31,7 +31,7 @@ args = Namespace(
 )
 model = DGCNN(args, output_channels=2)
 model = nn.DataParallel(model).to(device)
-model.load_state_dict(torch.load('src/PipelineA/model/dgcnn.pth'))
+model.load_state_dict(torch.load('weights/PipelineA/model/dgcnn.pth'))
 classifier =nn.Sequential(
     nn.Identity(),
 ).to(device)
