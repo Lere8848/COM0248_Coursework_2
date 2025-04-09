@@ -44,10 +44,10 @@ Shot with `realsense D455`, parsed using `realsense SDK` for PC, and stored in `
 
 ### Pipeline A – Depth → Point Cloud → Classification
 
-- Converts depth to point cloud
-- Applies a PointNet-based classifier
-- Evaluates classification performance (Accuracy, Precision, Recall, F1)
-- 补充
+- **Depth-to-PointCloud Conversion**: Converts raw depth images into 3D point clouds using the pinhole camera model and camera intrinsics. Each depth image (uint16, in millimeters) is scaled to meters and projected into 3D space. The resulting point clouds are downsampled to a fixed number of points and normalized to a unit sphere.
+
+- **Point Cloud Classification**: Applies a DGCNN-based classifier to the processed point cloud for binary classification (table / no table) from [DGCNN](https://github.com/WangYueFt/dgcnn). The model consists of four EdgeConv layers followed by global feature aggregation and a multi-layer perceptron. The architecture is defined in `src/PipelineA/dgcnn/pytorch/model.py`. And pipeline is implemented in `src/PipelineA/train.py` and `src/PipelineA/evaluation.py`
+
 
 ### Pipeline B – RGB → Depth → Classification
 
@@ -69,11 +69,10 @@ Shot with `realsense D455`, parsed using `realsense SDK` for PC, and stored in `
 ## Model Structure
 
 ### Pipeline A
-补充
+We adopt the Dynamic Graph Convolutional Neural Network (DGCNN) architecture proposed by Wang et al., which has shown strong performance on various point cloud understanding tasks. The network dynamically constructs a $k$-nearest neighbor graph at each layer and applies edge convolution to extract local geometric features. The network architecture is illustrated in figure below, where nubmer of class $c$ is 2, and number of points $n$ is 4096.
+![Pipeline B Structure](figures/DGCNN.png)
 
 ### Pipeline B
-Pipeline B consists of two main components:
-
 - A **pre-trained MiDaS** depth estimation model `dpt_hybrid_384`(with a `vitb_rn50_384` backbone) that converts input RGB images into depth maps.
 - A custom **CNN-MLP classifier** that takes the estimated depth map as input and predicts whether a table is present.
 
@@ -91,10 +90,41 @@ The structure is illustrated below:
 ## Results
 
 ### Pipeline A – Classification on Raw Point Cloud
+| Metric     |MIT Dataset| Havard Dataset | Self Realsense Dataset |
+|------------|-----------|----------------|------------------------|
+| Accuracy   | 0.84      |0.88            | 0.62                   |
 
-补充定量metrics，定性可视化的结果啥的
+#### MIT (Training) Set
+- **Accuracy**: 84%
+- **Confusion Matrix**:
+
+|               | Predicted Positive | Predicted Negative |
+|---------------|--------------------|--------------------|
+| Actual Positive | 147                | 13                 |
+| Actual Negative | 33                 | 88                 |
 
 ---
+
+#### Harvard (Test 1) Set
+- **Accuracy**: 88%
+- **Confusion Matrix**:
+
+|               | Predicted Positive | Predicted Negative |
+|---------------|--------------------|--------------------|
+| Actual Positive | 62                 | 8                  |
+| Actual Negative | 4                  | 24                 |
+
+---
+
+#### RealSense (Test 2) Set
+- **Accuracy**: 62%
+- **Confusion Matrix**:
+
+|               | Predicted Positive | Predicted Negative |
+|---------------|--------------------|--------------------|
+| Actual Positive | 28                 | 12                 |
+| Actual Negative | 7                  | 3                  |
+
 
 ### Pipeline B – Depth Estimation + Classification
 
@@ -153,13 +183,12 @@ project_root/
 Below are the specific structures of each pipeline:
 
 ### PipelineA
-补充
 ```
 src/PipelineA/
-│── model.py           # Point cloud classification model
+│── dgcnn              # DGCNN model
+│── model              # Trained weights
 │── train.py           # Training script
 │── eval.py            # Evaluation script
-└— dataloader.py      # Dataset wrapper for point clouds
 ```
 
 ### pipelineB 
@@ -221,8 +250,9 @@ data/
 ### 3. Run Pipeline A
 
 ```bash
-cd src/PipelineA
-补充下
+cd coursework_2
+python src/PipelineA/train.py
+python src/PipelineA/evaluation.py
 ```
 
 
