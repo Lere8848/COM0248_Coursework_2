@@ -24,9 +24,9 @@ test_dataloader = get_dataloader(DATASET_PATHS_HARVARD,data_dict, batch_size=8, 
 
 # Initialize the model
 args = Namespace(
-    k=25,            # 邻居数量
-    emb_dims=1024,   # embedding维度
-    dropout=0.5      # dropout比例
+    k=25,            # neighbor number
+    emb_dims=1024,   # embedding dimension
+    dropout=0.5      
 )
 model = DGCNN(args, output_channels=2)
 model = nn.DataParallel(model).to(device)
