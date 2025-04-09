@@ -317,7 +317,7 @@ python src/pipelineB/test.py
 ### 5. Run Pipeline C
 
 ```bash
-cd src/PipelineC
+cd coursework_2
 python src/PipelineC/convert_point_label.py # For create the point cloud file, uncomment to create the train set. change the NUM_POINTS to get different sample size.
 pythono src/PipeLineC/eval.py # Evaluation
 python src/PipelineC/train.py # Train a new model
