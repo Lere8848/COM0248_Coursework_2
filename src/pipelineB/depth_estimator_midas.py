@@ -8,7 +8,6 @@ import os
 
 from pathlib import Path
 
-# 添加路径：导入 MiDaS 模型
 import sys
 sys.path.append(str(Path(__file__).resolve().parent / "MiDaS"))
 
