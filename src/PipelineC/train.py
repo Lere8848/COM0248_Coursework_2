@@ -60,16 +60,16 @@ def train():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-4)
 
     best_val_acc = 0.0
-
+    # train the model
     for epoch in range(NUM_EPOCHS):
         model.train()
         total_loss = 0
         correct, total = 0, 0
-
+        # training
         for points, labels in tqdm(train_loader, desc=f"[Train Epoch {epoch+1}]"):
             points, labels = points.to(DEVICE), labels.to(DEVICE)  # (B, N, 3), (B, N)
             points = points.permute(0, 2, 1)  # (B, 3, N)
-
+            # random sampling
             preds = model(points)  # (B, C, N)
             preds = preds.permute(0, 2, 1).contiguous().view(-1, NUM_CLASSES)
             labels = labels.view(-1)
@@ -77,12 +77,12 @@ def train():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-
+            
             total_loss += loss.item()
             pred_classes = preds.argmax(dim=1)
             correct += (pred_classes == labels).sum().item()
             total += labels.numel()
-
+    
         train_acc = correct / total * 100
         avg_loss = total_loss / len(train_loader)
 

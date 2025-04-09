@@ -29,6 +29,7 @@ SAVE_DIR = "data/test_data_pipelineC"
 os.makedirs(SAVE_DIR, exist_ok=True)
 NUM_POINTS = 4096
 
+## Function to get the number of images in a dataset
 def random_sampling(points, num_samples):
     if points.shape[0] > num_samples:
         idx = np.random.choice(points.shape[0], num_samples, replace=False)
@@ -131,18 +132,16 @@ def balanced_sample_pointcloud(points, labels, num_points, table_ratio):
     perm = np.random.permutation(num_points)
     return points_sampled[perm], labels_sampled[perm]
 
-
-
-
-
+# Function to get the number of images in a dataset
 def save_all_processed_data():
+    # Iterate through each dataset path
     for dataset_path in DATASET_PATHS:
         scene_name = dataset_path.strip("/").split("/")[-2]
         num_images = get_num_images(dataset_path)
 
         save_dir = os.path.join(SAVE_DIR, scene_name)
         os.makedirs(save_dir, exist_ok=True)
-
+        
         for data_id in tqdm(range(num_images), desc=scene_name):
             rgb, depth, label_polygons = get_data(dataset_path, data_id)
             if depth is None:
@@ -173,7 +172,7 @@ def save_all_processed_data():
                                     labels=labels_sampled)
                 print(f"[{scene_name}_{data_id}] Saved negative sample.")
                 continue
-
+            # extract polygons from labels
             polygons = extract_polygons_from_labels(label_polygons)
             points, point_labels = depth_to_pointcloud_with_labels(depth, intrinsics, polygons, img_size)
 
