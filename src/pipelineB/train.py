@@ -17,11 +17,11 @@ from utils import DATASET_PATHS_MIT, DATASET_PATHS_HARVARD
 
 from pipelineBDataLoader import PipelineBRGBDataset
 from pipelineB_model import PipelineBModel
-from midas_depth_estimator import MiDaSDepthEstimator
+from depth_estimator_midas import MiDaSDepthEstimator
 
-from resnet_classifier import ResNetDepthClassifier
-from mlp_classifier import MLPDepthClassifier
-from cnn_mlp_classifier import CNNMLPDepthClassifier
+from classifier_resnet import ResNetDepthClassifier
+from classifier_mlp import MLPDepthClassifier
+from classifier_cnn_mlp import CNNMLPDepthClassifier
 
 BATCH_SIZE = 8
 EPOCHS = 20

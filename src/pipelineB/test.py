@@ -16,12 +16,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import DATASET_PATHS_MIT, DATASET_PATHS_HARVARD, DATASET_REALSENSE
 
 from pipelineBDataLoader import PipelineBRGBDataset
-from midas_depth_estimator import MiDaSDepthEstimator
-from resnet_classifier import ResNetDepthClassifier
-from mlp_classifier import MLPDepthClassifier
-from cnn_mlp_classifier import CNNMLPDepthClassifier
+from depth_estimator_midas import MiDaSDepthEstimator
+from classifier_resnet import ResNetDepthClassifier
+from classifier_mlp import MLPDepthClassifier
+from classifier_cnn_mlp import CNNMLPDepthClassifier
 from pipelineB_model import PipelineBModel
-from evaluation import evaluate_predictions
+from pipelineB.evaluation_class import evaluate_predictions
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

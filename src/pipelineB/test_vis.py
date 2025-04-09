@@ -7,8 +7,8 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import DATASET_REALSENSE, get_data, get_num_images
 
-from midas_depth_estimator import MiDaSDepthEstimator
-from cnn_mlp_classifier import CNNMLPDepthClassifier
+from depth_estimator_midas import MiDaSDepthEstimator
+from classifier_cnn_mlp import CNNMLPDepthClassifier
 from pipelineB_model import PipelineBModel
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

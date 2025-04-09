@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from midas_depth_estimator import MiDaSDepthEstimator
-from resnet_classifier import ResNetDepthClassifier
-from mlp_classifier import MLPDepthClassifier
-from cnn_mlp_classifier import CNNMLPDepthClassifier
+from depth_estimator_midas import MiDaSDepthEstimator
+from classifier_resnet import ResNetDepthClassifier
+from classifier_mlp import MLPDepthClassifier
+from classifier_cnn_mlp import CNNMLPDepthClassifier
 
 class PipelineBModel(nn.Module):
     """
