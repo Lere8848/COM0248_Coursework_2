@@ -1,0 +1,7 @@
+Test set performance | Loss: 0.3162 | Accuracy: 0.8776
+
+===== Evaluation Metrics =====
+Accuracy : 0.8776
+Precision: 0.8537
+Recall   : 0.9714
+F1 Score : 0.9211

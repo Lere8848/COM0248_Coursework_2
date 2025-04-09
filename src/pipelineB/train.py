@@ -16,14 +16,17 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils import DATASET_PATHS_MIT, DATASET_PATHS_HARVARD
 
 from pipelineBDataLoader import PipelineBRGBDataset
-from midas_depth_estimator import MiDaSDepthEstimator
-from resnet_classifier import ResNetDepthClassifier
-from mlp_classifier import MLPDepthClassifier
 from pipelineB_model import PipelineBModel
+from depth_estimator_midas import MiDaSDepthEstimator
 
-BATCH_SIZE = 4
+from classifier_resnet import ResNetDepthClassifier
+from classifier_mlp import MLPDepthClassifier
+from classifier_cnn_mlp import CNNMLPDepthClassifier
+
+BATCH_SIZE = 8
 EPOCHS = 20
-LEARNING_RATE = 1e-4
+MIDAS_LR = 1e-5
+CLASSIFIER_LR = 1e-4
 WEIGHT_DECAY = 1e-5
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 SAVE_DIR = "weights/pipelineB"
@@ -36,7 +39,7 @@ def train_epoch(model, loader, criterion, optimizer, device):
     total = 0
 
     pbar = tqdm(loader, desc="Training")
-    for batch_idx, (rgb, labels) in enumerate(pbar):
+    for batch_idx, (rgb, _, labels) in enumerate(pbar):
         rgb, labels = rgb.to(device), labels.to(device)
 
         optimizer.zero_grad()
@@ -64,7 +67,7 @@ def validate(model, loader, criterion, device):
     total = 0
 
     with torch.no_grad():
-        for rgb, labels in tqdm(loader, desc="Validating"):
+        for rgb, _, labels in tqdm(loader, desc="Validating"):
             rgb, labels = rgb.to(device), labels.to(device)
             outputs = model(rgb)
             loss = criterion(outputs, labels)
@@ -78,6 +81,8 @@ def validate(model, loader, criterion, device):
 def main(is_visualize=False):
     # ======== Load dataset ========
     print("Loading dataset...")
+    # train_dataset = ConcatDataset([PipelineBRGBDataset(path) for path in DATASET_PATHS_MIT])
+    # val_dataset = ConcatDataset([PipelineBRGBDataset(path) for path in DATASET_PATHS_HARVARD])
     train_datasets = [PipelineBRGBDataset(path) for path in DATASET_PATHS_MIT]
     combined_train_dataset = ConcatDataset(train_datasets)
 
@@ -97,20 +102,18 @@ def main(is_visualize=False):
     # ======== Initialize model and optimizer ========
     print(f"Using device: {DEVICE}")
     print("Initializing MiDaS depth estimator...")
-    midas = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_large_384.pt", device=DEVICE)
+    midas = MiDaSDepthEstimator(model_path="src/pipelineB/weights/dpt_hybrid_384.pt", device=DEVICE)
     resnet = ResNetDepthClassifier(num_classes=2).to(DEVICE)
     mlp = MLPDepthClassifier(num_classes=2).to(DEVICE)
+    cnn_mlp = CNNMLPDepthClassifier(num_classes=2).to(DEVICE)
 
     print("Building PipelineB model...")
     # model = PipelineBModel(midas, resnet, freeze_midas=True).to(DEVICE)
-    model = PipelineBModel(midas, mlp, freeze_midas=True).to(DEVICE)
+    # model = PipelineBModel(midas, mlp, freeze_midas=True).to(DEVICE)
+    model = PipelineBModel(midas, cnn_mlp, freeze_midas=True).to(DEVICE)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(
-        filter(lambda p: p.requires_grad, model.parameters()),
-        lr=LEARNING_RATE,
-        weight_decay=WEIGHT_DECAY
-    )
+    optimizer = optim.Adam(model.parameters(), lr=CLASSIFIER_LR, weight_decay=WEIGHT_DECAY)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
 
     # ======== Training ========
