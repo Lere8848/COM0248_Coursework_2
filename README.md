@@ -33,7 +33,7 @@ Shot with `realsense D455`, parsed using `realsense SDK` for PC, and stored in `
 
 ### Data Processing
 
-- **Polygon to Point Cloud Segmentation Labels**: pipeline C 补充
+- **Polygon to Point Cloud Segmentation Labels**: The polygonal annotations in the image are projected into the depth map using camera intrinsics and a 3D point cloud with point-level labels (table/background) is generated.
 
 - **Polygon to Classification Labels**: To enable binary classification, we process the original polygon annotations into a simplified JSON format. The `polygon2json.py` script generates a binary label (0/1) for each frame, indicating the presence or absence of any table.
 
@@ -59,10 +59,15 @@ Shot with `realsense D455`, parsed using `realsense SDK` for PC, and stored in `
 
 ### Pipeline C – Depth → Point Cloud → Segmentation
 
-- Converts depth to point cloud
-- Uses a segmentation model to classify points as table or background
-- Evaluates per-point IoU and mIoU for segmentation
-- 补充
+- **Label Projection**: From RGB-D input, depth maps are projected into 3D point clouds using camera intrinsics. Polygon annotations are mapped to each point (table / background) via 2D-to-3D projection (`convert_point_label.py`).
+
+- **Balanced Sampling & Storage**: Each `.npz` file contains 4096 labeled points with ~20% being table points. Balanced sampling is used to handle class imbalance.
+
+- **Data Augmentation**: Each point cloud is downsampled to 2048 / 4096 / 8192 points, expanding the training set 4× (1124 samples in total).
+
+- **Segmentation Model**: A lightweight DGCNN-based segmentation model (`dgcnn_seg.py`) is used to classify each point. Training logic is in `train.py`.
+
+- **Evaluation**: Per-scene and overall metrics (F1, IoU, etc.) are computed using `eval.py`, including confusion matrix outputs.
 
 ---
 
@@ -83,7 +88,21 @@ The structure is illustrated below:
 ![Pipeline B Structure](figures/pipelineB_model.png)
 
 ### Pipeline C
-补充
+
+
+- **Reduced Depth and Channel Size**  
+  The network architecture is simplified as follows:  
+  `64 → 64 → 128 → 256`, followed by a **2048-dimensional global feature vector**.
+
+- **Binary Output Head**  
+  The model outputs a tensor of shape `(B, 2, N)` for per-point classification, distinguishing between table and background.
+
+- **Dropout Regularization**  
+  A `Dropout(p=0.05)` layer is added before the final classifier to prevent overfitting and improve generalization.
+
+
+
+
 
 ## Results
 
@@ -145,7 +164,29 @@ Classification:
 
 ### Pipeline C – Point Cloud Segmentation
 
-补充定量metrics，定性可视化的结果啥的
+
+
+#### Segmentation Quantitative Results
+
+| Scene           | F1 Score | IoU    | Precision | Recall  |
+|------------------|----------|--------|-----------|---------|
+| harvard_c5       | 0.5597   | 0.3964 | 0.5747    | 0.5500  |
+| harvard_c6       | 0.5601   | 0.3944 | 0.5826    | 0.5439  |
+| harvard_c11      | 0.5004   | 0.3537 | 0.5161    | 0.4870  |
+| harvard_tea_2    | 0.0000   | 0.0000 | 0.0000    | 0.0000  |
+| **Overall Avg¹** | **0.5487** | **0.3874** | **0.5675** | **0.5351** |
+
+> ¹ Average excludes `harvard_tea_2`.
+
+####  Segmentation Qualitative Visualization
+ 
+
+<div align="center">
+  <img src="figures/compare.png" width="100%">
+</div>
+
+**Figure:** Visual comparison between predicted segmentation and ground truth on a test point cloud. Most table points are correctly segmented, with slight errors around object boundaries.
+
 
 ---
 
@@ -207,13 +248,13 @@ src/pipelineB/
 ```
 
 ### PipelineC 
-补充
+
 ```
 src/PipelineC/
-│── segmenter.py       # Point cloud segmentation model
+│── dgcnn_seg.py       # Point cloud segmentation model
 │── train.py
 │── eval.py
-│── utils.py           # For point cloud coloring and visualization
+│── convert_point_label.py           # For creating the offline point cloud .npz file
 ```
 
 ---
@@ -278,7 +319,10 @@ python src/pipelineB/test.py
 
 ```bash
 cd src/PipelineC
-补充
+python src/PipelineC/convert_point_label.py # For create the point cloud file, uncomment to create the train set. change the NUM_POINTS to get different sample size.
+pythono src/PipeLineC/eval.py # Evaluation
+python src/PipelineC/train.py # Train a new model
+
 ```
 
 ---

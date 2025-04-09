@@ -7,26 +7,24 @@ from torch.utils.data import Dataset, DataLoader
 from torch import nn
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
-from src.PipelineC.dgcnn_seg import DGCNN_seg  # 你的 DGCNN 实现
-import argparse
-from src.PipelineC.pointnet.pointnet.model import PointNetDenseCls
+from src.PipelineC.dgcnn_seg import DGCNN_seg  
 
 
-
-# ---------- 配置 ----------
-DATA_ROOT = "data/processed_data"
-BATCH_SIZE = 8
+# ---------- settings ----------
+DATA_ROOT = "data/test_data"
+BATCH_SIZE = 4
 NUM_EPOCHS = 100
 NUM_POINTS = 4096
 NUM_CLASSES = 2
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"you should use gpu, please!!!!: {DEVICE}")
 # --------------------------
 
-# ---------- 数据集定义 ----------
+# ---------- dataset ----------
 class TableSegDataset(Dataset):
     def __init__(self, files):
         self.files = files
-        print(f"加载了 {len(self.files)} 个样本")
+        print(f"load {len(self.files)} samples")
 
     def __len__(self):
         return len(self.files)
@@ -38,16 +36,16 @@ class TableSegDataset(Dataset):
         return torch.from_numpy(points).float(), torch.from_numpy(labels).long()
 # --------------------------------
 
-# ---------- 主训练函数 ----------
+# ---------- training ----------
 def train():
-    # 收集所有 .npz 文件
+    # load all .npz files. use offline training to spped up the training
     all_files = []
     for root, _, files in os.walk(DATA_ROOT):
         for f in files:
             if f.endswith(".npz"):
                 all_files.append(os.path.join(root, f))
 
-    # 划分训练集和验证集
+    # randondly split train and val dataset
     train_files, val_files = train_test_split(all_files, test_size=0.2, random_state=42)
 
     train_dataset = TableSegDataset(train_files)
@@ -56,11 +54,10 @@ def train():
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-    # 初始化模型
+    # initialize model, loss function and optimizer
     model = DGCNN_seg(num_classes=NUM_CLASSES).to(DEVICE)
-    # model = PointNetDenseCls(k=NUM_CLASSES).to(DEVICE)
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.00005)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-4)
 
     best_val_acc = 0.0
 
@@ -76,18 +73,7 @@ def train():
             preds = model(points)  # (B, C, N)
             preds = preds.permute(0, 2, 1).contiguous().view(-1, NUM_CLASSES)
             labels = labels.view(-1)
-
             loss = criterion(preds, labels)
-            # points, labels = points.to(DEVICE), labels.to(DEVICE)  # (B, N, 3), (B, N)
-            # points = points.permute(0, 2, 1)  # (B, 3, N)
-
-            # preds,_,_ = model(points)  # (B, C, N)
-            # preds = preds.view(-1, NUM_CLASSES)
-            # labels = labels.view(-1)
-
-            # loss = criterion(preds, labels)
-
-
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -100,7 +86,7 @@ def train():
         train_acc = correct / total * 100
         avg_loss = total_loss / len(train_loader)
 
-        # 验证
+        # validation
         model.eval()
         val_correct, val_total = 0, 0
         with torch.no_grad():
@@ -109,8 +95,6 @@ def train():
                 points = points.permute(0, 2, 1)
                 preds = model(points)
                 preds = preds.permute(0, 2, 1).contiguous().view(-1, NUM_CLASSES)
-                # preds,_,_ = model(points)
-                # preds = preds.permute(0, 2, 1).contiguous().view(-1, NUM_CLASSES)
                 labels = labels.view(-1)
 
                 pred_classes = preds.argmax(dim=1)
@@ -118,16 +102,16 @@ def train():
                 val_total += labels.numel()
 
         val_acc = val_correct / val_total * 100
-        print(f"[Epoch {epoch+1}] Loss: {avg_loss:.4f} | Train Acc: {train_acc:.2f}% | Val Acc: {val_acc:.2f}%")
+        print(f"[Epoch {epoch+1}] Train Loss: {avg_loss:.4f}  | Train Acc: {train_acc:.2f}% | Val Acc: {val_acc:.2f}%")
 
-        # 保存最佳模型
+        # save the best model
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             file_name = f"best_dgcnn_epoch_{epoch+1}.pth"
             torch.save(model.state_dict(), file_name)
-            print("保存最佳模型")
+            print("save model to", file_name)
 
-    print("训练完成，最佳验证准确率：", best_val_acc)
+    print("Train completed, best accuarcy is", best_val_acc)
 # ----------------------------------
 
 if __name__ == "__main__":
