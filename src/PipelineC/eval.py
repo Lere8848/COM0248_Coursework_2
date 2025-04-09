@@ -20,8 +20,8 @@ from sklearn.metrics import confusion_matrix
 MODEL_PATH = "weights/PipelineC/best.pth"
 NUM_POINTS = 4096   # should be same as convert_point_label.py setting
 # inference check
-depth_path = "data/realsense/realsense/20250328_105024/depthTSDF/frame_037.png"
-intrinsics_path = "data/realsense/realsense/20250328_105024/" 
+depth_path = "data/realsense_testset/20250328_105024/depthTSDF/frame_037.png"
+intrinsics_path = "data/realsense_testset/20250328_105024/" 
 # test set check
 TEST_CONFIGS = [
     {
@@ -151,7 +151,7 @@ def run_inference_without_gt(depth_path, intrinsics_path):
         pred_labels = preds.argmax(dim=1).squeeze().cpu().numpy()
     
     # save visualization
-    out_dir = "output_vis/inference_only"
+    out_dir = "results/inference_only"
     os.makedirs(out_dir, exist_ok=True)
     save_path = os.path.join(out_dir, "pred.png")
     save_pointcloud_visualization(sampled_points, pred_labels, save_path)

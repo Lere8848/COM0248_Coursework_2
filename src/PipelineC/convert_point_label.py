@@ -8,23 +8,24 @@ import cv2
 from tqdm import tqdm
 
 # path to train set
-DATASET_PATHS = [
-    "data/CW2_dataset/mit_76_studyroom/76-1studyroom2/",
-    "data/CW2_dataset/mit_32_d507/d507_2/",
-    "data/CW2_dataset/mit_lab_hj/lab_hj_tea_nov_2_2012_scan1_erika/",
-    "data/CW2_dataset/mit_76_459/76-459b/",
-    "data/CW2_dataset/mit_gym_z_squash/gym_z_squash_scan1_oct_26_2012_erika/",
-]
-SAVE_DIR = "data/train_data"
+# DATASET_PATHS = [
+#     "data/CW2_dataset/mit_76_studyroom/76-1studyroom2/",
+#     "data/CW2_dataset/mit_32_d507/d507_2/",
+#     "data/CW2_dataset/mit_lab_hj/lab_hj_tea_nov_2_2012_scan1_erika/",
+#     "data/CW2_dataset/mit_76_459/76-459b/",
+#     "data/CW2_dataset/mit_gym_z_squash/gym_z_squash_scan1_oct_26_2012_erika/",
+# ]
+# SAVE_DIR = "data/train_data"
 
 # uncomment this to genetrate the data for the test set
-# DATASET_PATHS = [
-#     "data/CW2_dataset/harvard_c6/hv_c6_1/",
-#     "data/CW2_dataset/harvard_c11/hv_c11_2/",
-#     "data/CW2_dataset/harvard_c5/hv_c5_1/",
-#     "data/CW2_dataset/harvard_tea_2/hv_tea2_2/",
-# ]
-# SAVE_DIR = "data/test_data"
+DATASET_PATHS = [
+    "data/CW2_dataset/harvard_c6/hv_c6_1/",
+    "data/CW2_dataset/harvard_c11/hv_c11_2/",
+    "data/CW2_dataset/harvard_c5/hv_c5_1/",
+    "data/CW2_dataset/harvard_tea_2/hv_tea2_2/",
+]
+SAVE_DIR = "data/test_data"
+
 os.makedirs(SAVE_DIR, exist_ok=True)
 NUM_POINTS = 4096
 
@@ -155,15 +156,17 @@ def save_all_processed_data():
                 points_full = depth_to_point_cloud(depth, intrinsics)
                 points_sampled = random_sampling(points_full, NUM_POINTS)
                 labels_sampled = np.zeros(NUM_POINTS, dtype=np.int64)
-                # # visualize the sampled points and labels
-                colors = np.zeros_like(points_sampled)
-                colors[:] = [0.5, 0.5, 0.5] 
-                colors[labels_sampled == 1] = [1.0, 0.0, 0.0] 
 
-                pcd = o3d.geometry.PointCloud()
-                pcd.points = o3d.utility.Vector3dVector(points_sampled)
-                pcd.colors = o3d.utility.Vector3dVector(colors)
-                o3d.visualization.draw_geometries([pcd])
+                # # # visualize the sampled points and labels
+                # colors = np.zeros_like(points_sampled)
+                # colors[:] = [0.5, 0.5, 0.5] 
+                # colors[labels_sampled == 1] = [1.0, 0.0, 0.0] 
+
+                # pcd = o3d.geometry.PointCloud()
+                # pcd.points = o3d.utility.Vector3dVector(points_sampled)
+                # pcd.colors = o3d.utility.Vector3dVector(colors)
+                # o3d.visualization.draw_geometries([pcd])
+
                 save_path = os.path.join(save_dir, f"{scene_name}_{data_id}.npz")
                 np.savez_compressed(save_path,
                                     points=points_sampled.astype(np.float32),
@@ -191,15 +194,17 @@ def save_all_processed_data():
 
             # sample with table points
             points_sampled, labels_sampled = balanced_sample_pointcloud(points, point_labels, NUM_POINTS, table_ratio=0.2)
-            # visualize the sampled points and labels
-            colors = np.zeros_like(points_sampled)
-            colors[:] = [0.5, 0.5, 0.5] 
-            colors[labels_sampled == 1] = [1.0, 0.0, 0.0] 
 
-            pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(points_sampled)
-            pcd.colors = o3d.utility.Vector3dVector(colors)
-            o3d.visualization.draw_geometries([pcd])
+            # # visualize the sampled points and labels
+            # colors = np.zeros_like(points_sampled)
+            # colors[:] = [0.5, 0.5, 0.5] 
+            # colors[labels_sampled == 1] = [1.0, 0.0, 0.0] 
+
+            # pcd = o3d.geometry.PointCloud()
+            # pcd.points = o3d.utility.Vector3dVector(points_sampled)
+            # pcd.colors = o3d.utility.Vector3dVector(colors)
+            # o3d.visualization.draw_geometries([pcd])
+
             print("The table point occupied:", np.sum(labels_sampled) / NUM_POINTS)
 
             save_path = os.path.join(save_dir, f"{scene_name}_{data_id}.npz")
