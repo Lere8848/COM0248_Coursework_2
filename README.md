@@ -85,8 +85,6 @@ The structure is illustrated below:
 ### Pipeline C
 补充
 
----
-
 ## Results
 
 ### Pipeline A – Classification on Raw Point Cloud
@@ -103,7 +101,6 @@ The structure is illustrated below:
 | Actual Positive | 147                | 13                 |
 | Actual Negative | 33                 | 88                 |
 
----
 
 #### Harvard (Test 1) Set
 - **Accuracy**: 88%
@@ -114,7 +111,6 @@ The structure is illustrated below:
 | Actual Positive | 62                 | 8                  |
 | Actual Negative | 4                  | 24                 |
 
----
 
 #### RealSense (Test 2) Set
 - **Accuracy**: 62%
@@ -125,6 +121,7 @@ The structure is illustrated below:
 | Actual Positive | 28                 | 12                 |
 | Actual Negative | 7                  | 3                  |
 
+---
 
 ### Pipeline B – Depth Estimation + Classification
 
@@ -290,6 +287,7 @@ cd src/PipelineC
 补充下参考的几个模型
 - [MiDaS: Accurate Monocular Depth Estimation](https://github.com/isl-org/MiDaS)
 - [Sun3D Dataset](https://sun3d.cs.princeton.edu)
+- 补充下TSDF 如果有
 
 ---
 
