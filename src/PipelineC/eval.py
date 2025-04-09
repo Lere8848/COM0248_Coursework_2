@@ -20,7 +20,7 @@ from sklearn.metrics import confusion_matrix
 MODEL_PATH = "weights/PipelineC/best.pth"
 NUM_POINTS = 4096   # should be same as convert_point_label.py setting
 # inference check
-depth_path = "data/realsense_testset/20250328_105024/depthTSDF/frame_037.png"
+depth_path = "data/realsense_testset/20250328_105024/depthTSDF/"
 intrinsics_path = "data/realsense_testset/20250328_105024/" 
 # test set check
 TEST_CONFIGS = [
@@ -151,12 +151,55 @@ def run_inference_without_gt(depth_path, intrinsics_path):
         pred_labels = preds.argmax(dim=1).squeeze().cpu().numpy()
     
     # save visualization
-    out_dir = "results/inference_only"
+    out_dir = "PipelineC_output_vis"
     os.makedirs(out_dir, exist_ok=True)
     save_path = os.path.join(out_dir, "pred.png")
     save_pointcloud_visualization(sampled_points, pred_labels, save_path)
 
     print(f"Prediction complete. Saved to {save_path}")
+
+def run_inference_without_gt_folder(depth_folder, intrinsics_path):
+    model = DGCNN_seg(num_classes=2).to(DEVICE)
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+    model.eval()
+
+    # get intrinsics
+    intrinsics = get_intrinsics(intrinsics_path)
+
+    # get depth images
+    depth_files = sorted(Path(depth_folder).glob("*.png"))
+    if not depth_files:
+        print(f"No depth images found in {depth_folder}")
+        return
+
+    out_dir = os.path.join("PipelineC_output_vis", "inference_only")
+    os.makedirs(out_dir, exist_ok=True)
+
+    for depth_path in tqdm(depth_files, desc="Running inference"):
+        depth = cv2.imread(str(depth_path), cv2.IMREAD_UNCHANGED)
+        if depth is None:
+            print(f"Can't load depth: {depth_path.name}")
+            continue
+
+        if depth.dtype != np.float32:
+            depth = depth.astype(np.float32)
+        if depth.max() > 100:
+            depth = depth / 1000.0
+
+        # 转点云并采样
+        points_full = depth_to_pointcloud(depth, intrinsics)
+        sampled_points = sample_pointcloud(points_full, NUM_POINTS)
+
+        with torch.no_grad():
+            input_tensor = torch.from_numpy(sampled_points).float().unsqueeze(0).to(DEVICE)
+            input_tensor = input_tensor.permute(0, 2, 1)
+            preds = model(input_tensor)
+            pred_labels = preds.argmax(dim=1).squeeze().cpu().numpy()
+
+        save_path = os.path.join(out_dir, f"{depth_path.stem}_pred.png")
+        save_pointcloud_visualization(sampled_points, pred_labels, save_path)
+
+    print(f"Inference complete. Results saved to {out_dir}")
 
 def main():
     model = DGCNN_seg(num_classes=2).to(DEVICE)
@@ -247,7 +290,7 @@ def main():
             scene_all_gt = np.concatenate(scene_gts)
             scene_all_pred = np.concatenate(scene_preds)
 
-            vis_folder = os.path.join("output_vis", scene_name)
+            vis_folder = os.path.join("PipelineC_output_vis", scene_name)
             os.makedirs(vis_folder, exist_ok=True)
             scene_cm_path = os.path.join(vis_folder, f"{scene_name}_avg_cm.png")
             save_confusion_matrix(scene_all_gt, scene_all_pred, scene_cm_path)
@@ -264,12 +307,12 @@ def main():
         final_gt = np.concatenate(all_gt_labels)
         final_pred = np.concatenate(all_pred_labels)
 
-        os.makedirs("output_vis", exist_ok=True)
-        final_cm_path = os.path.join("output_vis", "all_scenes_avg_cm.png")
+        os.makedirs("PipelineC_output_vis", exist_ok=True)
+        final_cm_path = os.path.join("PipelineC_output_vis", "all_scenes_avg_cm.png")
         save_confusion_matrix(final_gt, final_pred, final_cm_path)
 
 
 if __name__ == "__main__":
     main()
 
-    run_inference_without_gt(depth_path, intrinsics_path)
+    run_inference_without_gt_folder(depth_path, intrinsics_path)

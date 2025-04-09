@@ -319,7 +319,7 @@ python src/pipelineB/test.py
 ```bash
 cd coursework_2
 python src/PipelineC/convert_point_label.py # For create the point cloud file, uncomment to create the train set. change the NUM_POINTS to get different sample size.
-pythono src/PipeLineC/eval.py # Evaluation
+pythono src/PipeLineC/eval.py # Evaluation. Confusion matrix and inference point cloud will save at /PipelineC_output_vis
 python src/PipelineC/train.py # Train a new model
 
 ```
