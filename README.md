@@ -136,10 +136,10 @@ Classification:
 
 | Metric     | Havard Dataset | Self Realsense Dataset |
 |------------|-------------|------------------------|
-| Accuracy   | 0.8980      |0.8200 |
-| Precision  | 0.8947      |0.8605 |
+| Accuracy   | 0.8776      |0.8200 |
+| Precision  | 0.8537      |0.8605 |
 | Recall     | 0.9714      | 0.9250 |
-| F1 Score   | 0.9315      |  0.8916|
+| F1 Score   | 0.9211      |  0.8916|
 
 ---
 
