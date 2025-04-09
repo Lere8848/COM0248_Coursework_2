@@ -39,9 +39,6 @@ Shot with `realsense D455`, parsed using `realsense SDK` for PC, and stored in `
 
 - **Processing Self-Captured RealSense Data**: For self-captured RealSense `.bag` recordings, we extract `aligned RGB`, `depth frames` and `intrinsic parameters` using the `extract.py` script. Then, the `realsense_self_label.py` tool is used to manually annotate frames with classification GT labels (table / no table), stored in the same format JSON file.  
 
-- **Improving RealSense Data Depth Quality**: 补充Depth TSDF做的（后面的代码结构图更新下）
-
-
 ### Pipeline A – Depth → Point Cloud → Classification
 
 - **Depth-to-PointCloud Conversion**: Converts raw depth images into 3D point clouds using the pinhole camera model and camera intrinsics. Each depth image (uint16, in millimeters) is scaled to meters and projected into 3D space. The resulting point clouds are downsampled to a fixed number of points and normalized to a unit sphere.
@@ -265,7 +262,7 @@ src/PipelineC/
 
 ### 1. Install Dependencies
 
-Recommended Python version: **这里到时候确认下**  
+Recommended Python version: Python 3.10
 Install required packages with:
 
 ```bash
@@ -330,10 +327,10 @@ python src/PipelineC/train.py # Train a new model
 ---
 
 ## References
-补充下参考的几个模型
 - [MiDaS: Accurate Monocular Depth Estimation](https://github.com/isl-org/MiDaS)
 - [Sun3D Dataset](https://sun3d.cs.princeton.edu)
-- 补充下TSDF 如果有
+- [DGCNN](https://github.com/WangYueFt/dgcnn)
+- [DepthTSDF](https://github.com/PrincetonVision/DepthTSDF)
 
 ---
 
