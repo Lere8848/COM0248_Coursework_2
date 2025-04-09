@@ -17,13 +17,12 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix
 
 # ======== settings ========
-MODEL_PATH = "weight/2048.pth"
-DEPTH_FOLDER = "data/CW2_Dataset/harvard_c5/hv_c5_1/depthTSDF"  #depth image pathc 56 30 14
-DATASET_PATH = "data/CW2_Dataset/harvard_c5/hv_c5_1/"           # instrics path
-GT_FOLDER = "data/test_data/harvard_c5"  # ground truth path
+MODEL_PATH = "weights/PipelineC/best.pth"
 NUM_POINTS = 4096   # should be same as convert_point_label.py setting
+# inference check
 depth_path = "data/realsense/realsense/20250328_105024/depthTSDF/frame_037.png"
 intrinsics_path = "data/realsense/realsense/20250328_105024/" 
+# test set check
 TEST_CONFIGS = [
     {
         "depth_path": "data/CW2_dataset/harvard_c6/hv_c6_1/",

@@ -1,17 +1,13 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from dgcnn.pytorch.model import DGCNN,knn, get_graph_feature
-import torch
-from torch import nn
 import numpy as np
 import open3d as o3d
-import matplotlib.pyplot as plt
 from src.utils import depth_to_point_cloud, get_data, get_intrinsics,get_num_images, visualize_data
 import cv2
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+# path to train set
 DATASET_PATHS = [
     "data/CW2_dataset/mit_76_studyroom/76-1studyroom2/",
     "data/CW2_dataset/mit_32_d507/d507_2/",
@@ -21,6 +17,7 @@ DATASET_PATHS = [
 ]
 SAVE_DIR = "data/train_data"
 
+# uncomment this to genetrate the data for the test set
 # DATASET_PATHS = [
 #     "data/CW2_dataset/harvard_c6/hv_c6_1/",
 #     "data/CW2_dataset/harvard_c11/hv_c11_2/",
@@ -159,14 +156,14 @@ def save_all_processed_data():
                 points_sampled = random_sampling(points_full, NUM_POINTS)
                 labels_sampled = np.zeros(NUM_POINTS, dtype=np.int64)
                 # # visualize the sampled points and labels
-                # colors = np.zeros_like(points_sampled)
-                # colors[:] = [0.5, 0.5, 0.5] 
-                # colors[labels_sampled == 1] = [1.0, 0.0, 0.0] 
+                colors = np.zeros_like(points_sampled)
+                colors[:] = [0.5, 0.5, 0.5] 
+                colors[labels_sampled == 1] = [1.0, 0.0, 0.0] 
 
-                # pcd = o3d.geometry.PointCloud()
-                # pcd.points = o3d.utility.Vector3dVector(points_sampled)
-                # pcd.colors = o3d.utility.Vector3dVector(colors)
-                # o3d.visualization.draw_geometries([pcd])
+                pcd = o3d.geometry.PointCloud()
+                pcd.points = o3d.utility.Vector3dVector(points_sampled)
+                pcd.colors = o3d.utility.Vector3dVector(colors)
+                o3d.visualization.draw_geometries([pcd])
                 save_path = os.path.join(save_dir, f"{scene_name}_{data_id}.npz")
                 np.savez_compressed(save_path,
                                     points=points_sampled.astype(np.float32),
@@ -194,15 +191,15 @@ def save_all_processed_data():
 
             # sample with table points
             points_sampled, labels_sampled = balanced_sample_pointcloud(points, point_labels, NUM_POINTS, table_ratio=0.2)
-            # # visualize the sampled points and labels
-            # colors = np.zeros_like(points_sampled)
-            # colors[:] = [0.5, 0.5, 0.5] 
-            # colors[labels_sampled == 1] = [1.0, 0.0, 0.0] 
+            # visualize the sampled points and labels
+            colors = np.zeros_like(points_sampled)
+            colors[:] = [0.5, 0.5, 0.5] 
+            colors[labels_sampled == 1] = [1.0, 0.0, 0.0] 
 
-            # pcd = o3d.geometry.PointCloud()
-            # pcd.points = o3d.utility.Vector3dVector(points_sampled)
-            # pcd.colors = o3d.utility.Vector3dVector(colors)
-            # o3d.visualization.draw_geometries([pcd])
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(points_sampled)
+            pcd.colors = o3d.utility.Vector3dVector(colors)
+            o3d.visualization.draw_geometries([pcd])
             print("The table point occupied:", np.sum(labels_sampled) / NUM_POINTS)
 
             save_path = os.path.join(save_dir, f"{scene_name}_{data_id}.npz")

@@ -100,7 +100,9 @@ The structure is illustrated below:
 - **Dropout Regularization**  
   A `Dropout(p=0.05)` layer is added before the final classifier to prevent overfitting and improve generalization.
 
+The structure is illustrated below:
 
+![Pipeline B Structure](figures/DGCNN_seg.png)
 
 
 
