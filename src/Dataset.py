@@ -56,26 +56,33 @@ class PointCloudDataset(Dataset):
             pointcloud = depth_to_point_cloud(depth, get_intrinsics(dataset_path))
             pointcloud = torch.tensor(pointcloud, dtype=torch.float32).unsqueeze(0).transpose(2, 1)  # shape: [1, 3, n]
             return_dict['pointcloud'] = pointcloud
+
         # Apply transformations
-        if self.data_dict['rgb']:
+        if self.data_dict['rgb']: # rgb
             rgb = self.transform(rgb)
             rgb = torch.tensor(rgb, dtype=torch.float32, device=self.device)
             rgb = rgb.permute(2, 0, 1)  # Change to (C, H, W)
             return_dict['rgb'] = rgb
-        if self.data_dict['labels']:
+
+        if self.data_dict['labels']: # labels
+            # Load labels from label.json
             image_names = self.image_names_by_path[dataset_path]
             if data_id < len(image_names):
                 img_name = image_names[data_id]
                 frame_name = os.path.splitext(img_name)[0]
+
             label_dict = self.label_dicts.get(dataset_path, {})
             polygon = label_dict.get(frame_name, None) # check from polygon_label_dict.json
+
             label = 1 if polygon is not None else 0
             label = torch.tensor([label], dtype=torch.int64) # [1]/[0] to tensor
             return_dict['labels'] = label
-        if self.data_dict['depth']:
+
+        if self.data_dict['depth']: # depth
             depth = torch.tensor(depth, dtype=torch.float32, device=self.device)
             depth = depth.unsqueeze(0)  # Add channel dimension
             return_dict['depth'] = depth
+            
         return return_dict
         
 def collate_fn(batch):

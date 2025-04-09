@@ -54,10 +54,9 @@ try:
         depth_vis = cv2.convertScaleAbs(depth_image, alpha=0.03)
         cv2.imwrite(f"{depth_vis_dir}/frame_{frame_id:03}.png", depth_vis)
 
-        # Training set parameters:
+        # Training MIT set parameters:
         # File: 0002070-000069074347.png, Bit Depth: uint16, Size: 640x480
         # Depth PNG value range: Min = 0, Max = 63992
-        
         # Save raw depth image (16-bit)
         cv2.imwrite(f"{depth_raw_dir}/frame_{frame_id:03}.png", depth_image)
 

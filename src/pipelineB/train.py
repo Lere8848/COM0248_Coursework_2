@@ -110,7 +110,7 @@ def main(is_visualize=False):
     print("Building PipelineB model...")
     # model = PipelineBModel(midas, resnet, freeze_midas=True).to(DEVICE)
     # model = PipelineBModel(midas, mlp, freeze_midas=True).to(DEVICE)
-    model = PipelineBModel(midas, cnn_mlp, freeze_midas=True).to(DEVICE)
+    model = PipelineBModel(midas, cnn_mlp, freeze_midas=False).to(DEVICE)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=CLASSIFIER_LR, weight_decay=WEIGHT_DECAY)
