@@ -15,7 +15,7 @@ from tqdm import tqdm
 #     "data/CW2_dataset/mit_76_459/76-459b/",
 #     "data/CW2_dataset/mit_gym_z_squash/gym_z_squash_scan1_oct_26_2012_erika/",
 # ]
-# SAVE_DIR = "data/train_data"
+# SAVE_DIR = "data/train_data_pipelineC"
 
 # uncomment this to genetrate the data for the test set
 DATASET_PATHS = [
@@ -24,7 +24,7 @@ DATASET_PATHS = [
     "data/CW2_dataset/harvard_c5/hv_c5_1/",
     "data/CW2_dataset/harvard_tea_2/hv_tea2_2/",
 ]
-SAVE_DIR = "data/test_data"
+SAVE_DIR = "data/test_data_pipelineC"
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 NUM_POINTS = 4096

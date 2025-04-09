@@ -11,7 +11,7 @@ from src.PipelineC.dgcnn_seg import DGCNN_seg
 
 
 # ---------- settings ----------
-DATA_ROOT = "data/test_data"
+DATA_ROOT = "data/test_data_pipelineC"
 BATCH_SIZE = 4
 NUM_EPOCHS = 100
 NUM_POINTS = 4096
