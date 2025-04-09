@@ -1,8 +1,19 @@
+# data
 /data/CW2_dataset
 /data/realsense_backup
 /data/processed_data
+
+# pipelineC
 /output_vis
-/data
+/src/PipelineC/__pycache__
+/data/test_data_pipelineC
+
+# pipelineB
 /src/pipelineB/__pycache__
 /src/pipelineB/weights
+
+# pipelineA
+/src/PipelineA/__pycache__
+
+# all
 /src/__pycache__

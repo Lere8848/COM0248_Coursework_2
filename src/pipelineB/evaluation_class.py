@@ -64,7 +64,7 @@ def evaluate_predictions(y_true, y_pred, y_prob=None, save_dir=SAVE_DIR):
 
 
 if __name__ == "__main__":
-    # Dummy test usage
+    # Dummy test
     y_true = [0, 1, 1, 0, 1, 0, 1, 1]
     y_pred = [0, 1, 0, 0, 1, 0, 1, 1]
     y_prob = [0.2, 0.9, 0.4, 0.1, 0.85, 0.05, 0.77, 0.88]  # e.g., model output[:, 1]

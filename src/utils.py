@@ -4,6 +4,7 @@ import open3d as o3d
 import pickle
 import matplotlib.pyplot as plt
 
+# Train sets
 DATASET_PATHS_MIT = [
     "data/CW2_dataset/mit_32_d507/d507_2/",
     "data/CW2_dataset/mit_76_459/76-459b/",
@@ -12,6 +13,7 @@ DATASET_PATHS_MIT = [
     "data/CW2_dataset/mit_lab_hj/lab_hj_tea_nov_2_2012_scan1_erika/"
 ]
 
+# Test sets 1
 DATASET_PATHS_HARVARD = [
     "data/CW2_dataset/harvard_c5/hv_c5_1/",
     "data/CW2_dataset/harvard_c6/hv_c6_1/",
@@ -29,6 +31,7 @@ DATASET_PATHS_HARVARD = [
 #     "data/realsense/20250328_105303/",
 # ]
 
+# Test sets 2
 DATASET_REALSENSE = [
     "data/realsense_testset/20250328_104927/",
     "data/realsense_testset/20250328_105024/",
@@ -37,6 +40,7 @@ DATASET_REALSENSE = [
     "data/realsense_testset/20250328_105254/"
 ]
 
+# for classification labels
 DATASET_PATHS_WITH_TABLE = ["data/CW2_dataset/harvard_c5/hv_c5_1/",
          "data/CW2_dataset/harvard_c6/hv_c6_1/",
          "data/CW2_dataset/mit_76_studyroom/76-1studyroom2/",
@@ -58,11 +62,11 @@ MISSING_POLYGON_LABELS = {
     ]
 }
 
-DATASET_PATHS = DATASET_PATHS_WITH_TABLE + DATASET_PATHS_WITHOUT_TABLE
-
 NUM_IMAGES_WITH_TABLE = [23, 35, 48, 108, 13, 13, 34]
 
 NUM_IMAGES_WITHOUT_TABLE = [73, 23]
+
+DATASET_PATHS = DATASET_PATHS_WITH_TABLE + DATASET_PATHS_WITHOUT_TABLE
 
 NUM_IMAGES = NUM_IMAGES_WITH_TABLE + NUM_IMAGES_WITHOUT_TABLE
 
@@ -187,7 +191,6 @@ def visualize_point_cloud(points):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
     o3d.visualization.draw_geometries([pcd])
-
 
 
 
