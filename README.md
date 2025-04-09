@@ -39,6 +39,8 @@ Shot with `realsense D455`, parsed using `realsense SDK` for PC, and stored in `
 
 - **Processing Self-Captured RealSense Data**: For self-captured RealSense `.bag` recordings, we extract `aligned RGB`, `depth frames` and `intrinsic parameters` using the `extract.py` script. Then, the `realsense_self_label.py` tool is used to manually annotate frames with classification GT labels (table / no table), stored in the same format JSON file.  
 
+- **Improving RealSense Data Depth Quality**: 补充Depth TSDF做的（后面的代码结构图更新下）
+
 
 ### Pipeline A – Depth → Point Cloud → Classification
 
@@ -100,8 +102,8 @@ Depth Estimation:
 
 | Metric | Havard Dataset | Self Realsense Dataset |
 |--------|-------------|------------------------|
-| RMSE   |    八  | 方 |
-| MAE    |     来  | 财 |
+| RMSE   |    0.11  | 0.05 |
+| MAE    |     0.07  | 0.03 |
 
 Classification:
 
@@ -165,16 +167,17 @@ src/PipelineA/
 src/pipelineB/
 ├── MiDaS/                     # MiDaS depth estimation model 
 ├── weights/                   # Pre-trained MiDaS weights
-├── cnn_mlp_classifier.py      # CNN + MLP classifier for estimated depth
-├── midas_depth_estimator.py   # MiDaS wrapper for RGB-to-depth conversion
-├── mlp_classifier.py          # Simple MLP classifier
-├── resnet_classifier.py       # ResNet-based depth classifier
+├── classifier_cnn_mlp.py      # CNN + MLP classifier for estimated depth
+├── depth_estimator_midas.py   # MiDaS wrapper for RGB-to-depth conversion
+├── classifier_mlp.py          # Simple MLP classifier
+├── classifier_resnet.py       # ResNet-based depth classifier
 ├── pipelineB_model.py         # Unified pipeline: depth estimation + classification
 ├── pipelineBDataLoader.py     # Custom DataLoader for pipelineB based on src/Dataset.py
 ├── train.py                   # Training script
 ├── test.py                    # Batch evaluation script
 ├── test_vis.py                # Visualization: show RGB with predicted label
-└── evaluation.py              # Evaluation metrics (accuracy, precision, recall, F1)
+├── evaluation_class.py        # Classification evaluation metrics (accuracy, precision, recall, F1)
+└── evaluation_depth.py        # Depth evaluation metrics (RMSE, MAE)
 ```
 
 ### PipelineC 
